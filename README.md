@@ -20,17 +20,17 @@ Aesthetics:
   
 Functionality:
   * It should have the same functionality as my previous app and a few new additions:
-    # Plot and tabulate data (the table should be interactive this time with pivots)
-    # Have all the usual search functionality of the old app.
-    # Be able to save editted data. Not sure if I would want it all saving into 1 document or just a part of it?
-    # Categorise data (maybe try to improve the categorisation. Machine learning  may eventually help, far in the future)
-    # Find time averaged income -Specify an amount of days and have it tell me how much money I spend on average in that time.
-    # Find time averaged outgoings.
-    # Predict future balance, could use the averages to begin with...
-    # Paypal integration.
-    # Have a settings page to change things outside of the source code such as the look of the app.
-    # Be able to write scripts within the app to perform on the data without changing the source code.
-    # Be able to download statement data without leaving the app... maybe through a web browser within the app...
+    ** Plot and tabulate data (the table should be interactive this time with pivots)
+    ** Have all the usual search functionality of the old app.
+    ** Be able to save editted data. Not sure if I would want it all saving into 1 document or just a part of it?
+    ** Categorise data (maybe try to improve the categorisation. Machine learning  may eventually help, far in the future)
+    ** Find time averaged income -Specify an amount of days and have it tell me how much money I spend on average in that time.
+    ** Find time averaged outgoings.
+    ** Predict future balance, could use the averages to begin with...
+    ** Paypal integration.
+    ** Have a settings page to change things outside of the source code such as the look of the app.
+    ** Be able to write scripts within the app to perform on the data without changing the source code.
+    ** Be able to download statement data without leaving the app... maybe through a web browser within the app...
      
 Other notes:
   * I want to use Python3 and PyQT 5.
