@@ -1,5 +1,6 @@
 import pandas as pd
-
+import os
+import __main__
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
@@ -15,7 +16,8 @@ def data_clean(filepaths):
         except UnicodeDecodeError as e:
             print("I couldn't read the files. They seem to be stored in the wrong format.\nPlease check that the statement data is in csv format.\n")
             print("Rogue file = ",file,"\nError = ",e)
-
+    
+    
 # Returns an uppercase string
 def up(x):
     if type(x) == str:
@@ -26,9 +28,14 @@ def up(x):
     else:
         return x
     
+    
 # Reads a group of data files and groups them into 1 dataframe.
 def data_read(filepaths):
-    data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
+    if type(filepaths) == list:
+        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
+    if type(filepaths) == str:
+        files = [i for i in os.listdir(filepaths) if '.csv' in i]
+        data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
     return data
 
 
@@ -38,6 +45,7 @@ def list_check(search_item, LIST):
         if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
             return (True,list_item)
     return False
+
 
 # Converts the type of a column in a dataframe
 def convert_col(df,col,Type,error_msgs):
@@ -52,6 +60,7 @@ def convert_col(df,col,Type,error_msgs):
     except KeyError as e:
          error_msgs.append('There is no '+col+' column in the bank_data')
 
+
 # Checks to see whether a search parameter (value) is in the dictionary's values. Works for strings, numbers and lists.
 def dict_value_search(value,dictionary):
     if type(value) == list or type(value) == set:
@@ -59,9 +68,10 @@ def dict_value_search(value,dictionary):
         for value_index in range(len(value)):
             for dict_values in dictionary.items():
                 if list_check(value[value_index].lower(),dict_values[1]):
-                    new_vals[value_index] = dict_values[0]
+                    new_vals[value_index] = dict_values[0] 
                     break
         return new_vals
+    
     elif type(value) == int or type(value) == float:
         value = str(value)
     
@@ -71,3 +81,34 @@ def dict_value_search(value,dictionary):
                     return dict_values[0]
     else:
         return 0
+
+
+# Saves the data to a specified location.
+def save(data,filepath):
+    if type(data) == dict:
+        for i in data:
+            data[i].to_csv(filepath+str(i)+".csv")
+    
+    elif type(data) == pd.core.frame.DataFrame:
+        data.to_csv(filepath)
+
+cats = __main__.cats
+
+# Categorises the data
+def categoriser(item):
+    Type, Desc, Acc_num, Bal, In, Out, Date = item.lower().split(';')
+    cat = dict_value_search(Desc,cats)
+    if Type.lower() == 'cpt':
+        return 'Cash'
+    elif Type.lower() == 'bgc':
+        return 'Salary'
+    elif Type.lower() == 'so':
+        return 'Rent, Bills and Fines'
+    #if cat == 'Groceries':
+        
+    if cat:
+        return cat
+
+
+
+    
