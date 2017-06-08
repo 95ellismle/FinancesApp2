@@ -4,7 +4,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import pandas as pd
 
-from __main__ import dict_bank_data, new_cols
+from __main__ import dict_bank_data, new_cols, act_nums
 
 
 class Table(QWidget):
@@ -23,19 +23,22 @@ class Table(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
-        self.TabWidget = QTabWidget(self)
-        self.Vbox = QVBoxLayout()
+        self.myTabs = QTabWidget(self)
+        for intName in act_nums:
+            name = str(intName)
+            tabWidget = QWidget()
+            tabTable = QTableWidget()
+            self.createTable(tabTable, dict_bank_data[intName])
         
-        count = 1
-        for i in dict_bank_data:
-            self.page1 = QWidget()
-            self.Table1 = QTableWidget()
-            self.Vbox.addWidget(self.Table1)
-            self.page1.setLayout(self.Vbox)
+            tabLayout = QVBoxLayout()
+            tabLayout.addWidget(tabTable)
+            tabWidget.setLayout(tabLayout)
             
-            self.TabWidget.addTab(self.page1,"Account %i"%count)
-            count += 1
-            self.createTable(self.Table1, dict_bank_data[i])
+            self.myTabs.addTab(tabWidget, name)
+        
+        mainLayout = QVBoxLayout()
+        mainLayout.addWidget(self.myTabs)
+        self.setLayout(mainLayout)
         # Show widget
         self.show()
  
