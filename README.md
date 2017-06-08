@@ -34,3 +34,9 @@ Functionality:
 Other notes:
   * I want to use Python3 and PyQT 5.
   * I'll be using the Pandas library and Numpy and Matplotlib extensively.
+
+
+
+
+# Currently:
+The app is currently still in its infancy. I have some basic code to categorise the bank data, a GUI to display the data from accounts in separate tabs. The code is fully object orientated and hopefully much more readable than the previous (spaghetti code) attempt. I have a separate file for back-end functions in the Data folder. This contains functions which can parse data from text files into dictionaries, categorise the data and read/save data etc... The Gui/front-end stuff is currently kept in the Gui folder. At the moment this is only a Table Widget to display the bank data.
