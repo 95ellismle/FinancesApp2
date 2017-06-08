@@ -53,26 +53,30 @@ if len(bank_filepaths):
     ### Sorting data from different bank accounts
     bank_data = bank_data.sort_values('Date',0)
     bank_data['Description'] = bank_data['Description'].apply(dr.up)
+    bank_data = bank_data.fillna('')
+    bank_data['Description'] = bank_data['Description'].apply(dr.unclutter)
     act_nums = list(set(list(bank_data['Acc Num']))) # Finding the unique account numbers
-    dict_bank_data = {i:bank_data.loc[bank_data['Acc Num'] == i] for i in act_nums}
+    dict_bank_data = {i:bank_data.loc[bank_data['Acc Num'] == i] for i in act_nums} # Storing each account as a separate dictionary entry
+    for i in dict_bank_data: # Deleting the account numbers in the dataframes
+        dict_bank_data[i] = dict_bank_data[i].drop([col for col in bank_data.columns if 'Acc' in col], axis=1)
     ###
-
+    cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
     for i in dict_bank_data:
-        dict_bank_data[i].index = range(len(dict_bank_data[i]))
-        dict_bank_data[i].loc[:,'Categories'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Acc Num'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
-        dict_bank_data[i].loc[:,'Categories'] = dict_bank_data[i].loc[:,'Categories'].apply(dr.categoriser)
-        new_cols = [i for i in new_cols] + ['Categories']
+        dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
+        dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
+        dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Category'].apply(dr.categoriser)
+        dict_bank_data[i] = dict_bank_data[i].sort_values(by='Date', ascending=False)
+        dict_bank_data[i] = dict_bank_data[i][cols_ordered] # Re-Ordering the Columns
 
     #dr.save(dict_bank_data,'./')
-print(dict_bank_data[27274868])
 
 
 from Gui import App
 import sys
 from PyQt5.QtWidgets import QApplication
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App.Main()
     sys.exit(app.exec_())
-

@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from __main__ import categories_filename
+import datetime as dt
 
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
@@ -46,6 +47,11 @@ def list_check(search_item, LIST):
         if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
             return (True,list_item)
     return False
+
+
+# Converts a datetime to a string for displaying the dataframe data
+def date2time(time):
+    return dt.datetime.strftime(time,'%d/%m/%Y')
 
 
 # Converts the type of a column in a dataframe
@@ -118,9 +124,16 @@ def dict_parser(filepath):
 
 cats = dict_parser(categories_filename)
 
+# Removes Certain Strings from the Description of the Transaction to make it more readable
+def unclutter(string):
+    for i in ['1','2','3','4','5','6','7','8','9','0','(',')','CD']:
+        string = string.replace(i,'')
+    return string
+
 # Categorises the data
 def categoriser(item):
-    Type, Desc, Acc_num, Bal, In, Out, Date = item.lower().split(';')
+    Type, Desc, Bal, In, Out, Date = item.lower().split(';')
+
     if Type == 'cpt':
         return 'Cash'
     elif Type == 'bgc':
@@ -129,28 +142,41 @@ def categoriser(item):
         return 'Rent, Bills and Fines'
     elif Type == 'tfr':
         return 'Transfer'
+    elif Type == 'dep':
+        return 'Bank Deposit'
+    if 'interest' in Desc:
+        return 'Interest'
 
     cat = dict_value_search(Desc,cats)
+
     if cat == 'Groceries':
         if list_check(Desc,cats['Car']):
             return 'Car'
         elif list_check(Desc,cats['Online Shopping']):
             return 'Online Shopping'
+        else:
+            return'Groceries'
 
     if cat == 'High Street':
         if list_check(Desc,cats['Groceries']):
             return 'Groceries'
         elif list_check(Desc,cats['Online Shopping']):
             return 'Online Shopping'
+        else:
+            return 'High Street'
     
     if cat == 'Car':
         if list_check(Desc,cats['High Street']):
             return 'High Street'       
         elif list_check(Desc,cats['Online Shopping']):
             return 'Online Shopping'
+        else:
+            return 'Car'
     
     if cat == 'Bars and Pubs':
         if list_check(Desc,cats['Eating Out']):
             return 'Eating Out'
+        else:
+            return 'Bars and Pubs'
     else:
         return cat

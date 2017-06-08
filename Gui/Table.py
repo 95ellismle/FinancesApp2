@@ -1,23 +1,35 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jun  3 09:11:39 2017
+# PyQt related imports
+from PyQt5.QtCore import QAbstractTableModel, Qt
 
-@author: ellismle
-"""
+from numpy import shape, array
 
-from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem,QVBoxLayout
-
- 
-class Table(QTableWidget):
+class PandasModel(QAbstractTableModel):
     """
     Class to populate a table view with a pandas dataframe
     """
-    def __init__(self, parent, data):
-        QTableWidget.__init__(self, parent)
-        self._data = data
-        # set row count
-        self.setRowCount(4)
-         
-        # set column count
-        self.setColumnCount(2)
+    def __init__(self, data, parent=None):
+        QAbstractTableModel.__init__(self, parent)
+        self._data = array(data.values)
+        self._cols = data.columns
+        self.r, self.c = shape(self._data)
+        
+    def rowCount(self, parent=None):
+        return self.r
+
+    def columnCount(self, parent=None):
+        return self.c
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid():
+            if role == Qt.DisplayRole:
+                return self._data[index.row(),index.column()]
+        return None
+
+
+    def headerData(self, p_int, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return self._cols[p_int]
+            elif orientation == Qt.Vertical:
+                return p_int
+        return None
