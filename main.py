@@ -61,9 +61,10 @@ if len(bank_filepaths):
         dict_bank_data[i].index = range(len(dict_bank_data[i]))
         dict_bank_data[i].loc[:,'Categories'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Acc Num'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
         dict_bank_data[i].loc[:,'Categories'] = dict_bank_data[i].loc[:,'Categories'].apply(dr.categoriser)
+        new_cols = [i for i in new_cols] + ['Categories']
 
     #dr.save(dict_bank_data,'./')
-
+print(dict_bank_data[27274868])
 
 
 from Gui import App
@@ -72,6 +73,6 @@ from PyQt5.QtWidgets import QApplication
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App.Table()
+    ex = App.Main()
     sys.exit(app.exec_())
 

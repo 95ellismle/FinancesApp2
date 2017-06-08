@@ -55,7 +55,7 @@ def convert_col(df,col,Type,error_msgs):
     try:
         if type(Type) == str:
             if 'date' in Type.lower() or 'time' in Type.lower():
-                df[col] = pd.to_datetime(df[col],format='%d/%m/%Y')  
+                df[col] = pd.to_datetime(df[col])  
         else:
             df[col] = df[col].apply(Type)
     except KeyError as e:
