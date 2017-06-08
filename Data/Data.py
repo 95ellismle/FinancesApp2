@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-import __main__
+from __main__ import categories_filename
+
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
@@ -54,7 +55,7 @@ def convert_col(df,col,Type,error_msgs):
     try:
         if type(Type) == str:
             if 'date' in Type.lower() or 'time' in Type.lower():
-                df[col] = pd.to_datetime(df[col])  
+                df[col] = pd.to_datetime(df[col],format='%d/%m/%Y')  
         else:
             df[col] = df[col].apply(Type)
     except KeyError as e:
@@ -67,7 +68,7 @@ def dict_value_search(value,dictionary):
         new_vals = [i for i in value]
         for value_index in range(len(value)):
             for dict_values in dictionary.items():
-                if list_check(value[value_index].lower(),dict_values[1]):
+                if list_check(value[value_index],dict_values[1]):
                     new_vals[value_index] = dict_values[0] 
                     break
         return new_vals
@@ -77,7 +78,7 @@ def dict_value_search(value,dictionary):
     
     elif type(value) == str:
         for dict_values in dictionary.items():
-            if list_check(value.lower(),dict_values[1]):
+            if list_check(value,dict_values[1]):
                     return dict_values[0]
     else:
         return 0
@@ -92,23 +93,64 @@ def save(data,filepath):
     elif type(data) == pd.core.frame.DataFrame:
         data.to_csv(filepath)
 
-cats = __main__.cats
+# Removes any comments (Those with a hash) from some text
+def comment_remove(string):
+    hash_ind = string.find('#')
+    if hash_ind != -1:
+        carriage_ind = string[hash_ind:].find('\n') + 1
+        string = string[carriage_ind:]
+        return comment_remove(string)
+    else:
+        return string
+
+# Parses the dictionary data from a txt file into a dictionary
+def dict_parser(filepath):
+    ### Reading the file containing info on categorising the data
+    categories_file = open(filepath,'r')
+    categories_txt = comment_remove(categories_file.read())
+    categories_file.close()
+    # Parsing the category file data.
+    x = [comment_remove(i.replace('\n','').replace('\t','').replace(' ','').replace('\_',' ')) for i in categories_txt.split(';')]
+    x = [i for i in x if i] # Removes any empty strings and the like...
+    CATS = {i.split(':')[0]:[j.upper() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+    ###
+    return CATS
+
+cats = dict_parser(categories_filename)
 
 # Categorises the data
 def categoriser(item):
     Type, Desc, Acc_num, Bal, In, Out, Date = item.lower().split(';')
-    cat = dict_value_search(Desc,cats)
-    if Type.lower() == 'cpt':
+    if Type == 'cpt':
         return 'Cash'
-    elif Type.lower() == 'bgc':
+    elif Type == 'bgc':
         return 'Salary'
-    elif Type.lower() == 'so':
+    elif Type == 'so':
         return 'Rent, Bills and Fines'
-    #if cat == 'Groceries':
-        
-    if cat:
-        return cat
+    elif Type == 'tfr':
+        return 'Transfer'
 
+    cat = dict_value_search(Desc,cats)
+    if cat == 'Groceries':
+        if list_check(Desc,cats['Car']):
+            return 'Car'
+        elif list_check(Desc,cats['Online Shopping']):
+            return 'Online Shopping'
 
-
+    if cat == 'High Street':
+        if list_check(Desc,cats['Groceries']):
+            return 'Groceries'
+        elif list_check(Desc,cats['Online Shopping']):
+            return 'Online Shopping'
     
+    if cat == 'Car':
+        if list_check(Desc,cats['High Street']):
+            return 'High Street'       
+        elif list_check(Desc,cats['Online Shopping']):
+            return 'Online Shopping'
+    
+    if cat == 'Bars and Pubs':
+        if list_check(Desc,cats['Eating Out']):
+            return 'Eating Out'
+    else:
+        return cat

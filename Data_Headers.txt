@@ -1,0 +1,8 @@
+Acc\_Num:	account\_number;
+Balance:	balance;
+In:		in, credit;
+Out:		out, debit;
+Date:		date;
+Description:	descri, name;
+Type:		type, code;
+Time:		time;
