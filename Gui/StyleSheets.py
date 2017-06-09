@@ -1,34 +1,30 @@
-background_colour = [255,255,255,255]
+table_background_colour = [245,255,255,255]
 
 #border: 1px solid black;
 StyleSheets = {                
         ### Things that adjust the look of the tab         
         'tab' :""" QTabBar::tab 
         {
-                background-color: white;  
+                background-color: #f2f2f2;  
                 gridline-color: none;
         }
-        QTabWidget 
-        {
-                background-color: white;
-        }
-        QTabWidget::pane 
+        .QTabWidget::pane 
         { 
                 border: 0; 
                 background-color: white;
         }
-        QTabBar::tab::focus
+        .QTabBar::tab::focus
         {
-                background-color: lightgrey; 
+                background-color: blue; 
                 font-weight: bold;
         }
-        QTabBar::tab::hover
+        .QTabBar::tab::hover
         {
-                background-color: grey;
+                background-color: lightgrey;
                 font-weight: bold;
-                color: yellow;
+                color: darkslategrey;
         }
-        QTabBar::tab::focus::hover
+        .QTabBar::tab::focus::hover
         {
                 background-color: grey;
                 font-weight: bold;
@@ -47,7 +43,7 @@ StyleSheets = {
             .QTableView::item:hover
             {   
                 color: black;
-                background: #ffdab9;            
+                background: #ffdab9;  
             }
             .QTableView::item:focus
             {   
@@ -56,7 +52,7 @@ StyleSheets = {
             }
             .QHeaderView::section
             {
-                border: 0.5px solid black;
+                border: 0px solid black;
                 background-color: #fbffff;
                 color: black;
                 height: 50px;
@@ -65,7 +61,6 @@ StyleSheets = {
             QScrollBar:vertical {
                 width: 25px;
                 background-color: white;
-                margin: 25 0 0 0;
             }  
             QScrollBar::handle::vertical
             {
@@ -74,12 +69,57 @@ StyleSheets = {
             }
             QScrollBar::up-arrow::vertical 
             { 
-                background-color: white;
+                background-color: #f2f2f2;
+                border: 0;
             }
     
             QScrollBar::down-arrow::vertical 
             {
-                background-color: white;
+                background-color: #f2f2f2;
+                border: 0;
+
             }
-            """
+            """,
+            
+            ### Things that change the look of the sidebar
+            'sidebar':""" 
+            .QFrame
+            {
+                background-color: white;
+                border: 0;
+            }""",
+            
+            ### Things that change the look of the buttons on the sidebar
+            'button1':"""
+            .QPushButton
+            {
+                background-color: rgb(230,255,255);
+                color: rgb(139,69,19);
+                font-size: 25px;
+                border: 0;
+            }
+            .QPushButton::hover
+            {
+                background-color: rgb(200,255,255);
+                border: 0;
+                color: rgb(139,69,19);
+                font-size: 25px;
+                font-weight: bold;
+            }""",
+            
+            'button2':""".QPushButton
+            {
+                background-color: rgb(255,230,255);
+                border: 0;
+                color: rgb(240,69,19);
+                font-size: 25px;
+            }
+            .QPushButton::hover
+            {
+                background-color: rgb(255,200,255);
+                border: 0;
+                color: rgb(240,69,19);
+                font-size: 25px;
+                font-weight: bold;
+            }"""
         }
