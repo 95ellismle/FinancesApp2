@@ -9,7 +9,7 @@ from __main__ import dict_bank_data, act_nums
 from Data import Data as dr
 from Gui.StyleSheets import StyleSheets, table_background_colour
 from Gui.Table import PandasModel
-    
+
 
 class Main(QWidget): # Create a class inheriting from the QMainWindow
     def __init__(self, parent=None):
@@ -33,12 +33,12 @@ class Main(QWidget): # Create a class inheriting from the QMainWindow
         sidebar_layout = QVBoxLayout()
         
         button = QPushButton("Button 1")
-        button.setMinimumSize(110,75)
+        button.setMinimumSize(110,100)
         button.setStyleSheet(StyleSheets['button1'])
         button.clicked.connect(self.on_click)
     
         button2 = QPushButton("Button 2")
-        button2.setMinimumSize(110,75)
+        button2.setMinimumSize(110,100)
         button2.setStyleSheet(StyleSheets['button2'])
         button2.clicked.connect(self.on_click)
         
@@ -49,17 +49,19 @@ class Main(QWidget): # Create a class inheriting from the QMainWindow
         sidebar_layout.addWidget(button2,1)
         
         ### Dealing with the Tabs         
-        self.myTabs = QTabWidget() # Creates the tab widget to hold the tabs
+        self.myTabs = QTabWidget(self) # Creates the tab widget to hold the tabs
+        self.myTabs.setMinimumHeight(100)
         self.myTabs.setStyleSheet(StyleSheets['tab'])
         for name in act_nums:
             self.tabWidget =  QWidget() # Creating a widget to hold a single tab
-            self.tabWidget.setFocus(Qt.MouseFocusReason)
             self.view = QTableView(self) # Creating a table view to eventually put a pandas dataframe in
             self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+            self.tabWidget.setStyleSheet(StyleSheets['tab'])
             ### Change the header fonts
             font = QFont()
             font.setPointSize(15)
             self.headers = self.view.horizontalHeader()
+            self.headers.setDefaultAlignment(Qt.AlignLeft|Qt.AlignVCenter)
             self.headers.setFont(font)
             ###
             tabLayout = QVBoxLayout() #Creating a layout for the tabs
@@ -107,7 +109,7 @@ class Main(QWidget): # Create a class inheriting from the QMainWindow
         self.view.setShowGrid(False)
         for i in range(1,len(dict_bank_data[act_nums[0]].columns)):
                 self.headers.setSectionResizeMode(int(i),QHeaderView.Stretch)  
-        self.view.setStyleSheet(StyleSheets['Table'])
+        self.view.setStyleSheet(StyleSheets['table'])
         self.view.resizeColumnsToContents() # Resize the column widths to fit the contents
         
         self.view.show()

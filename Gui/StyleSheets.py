@@ -8,77 +8,80 @@ StyleSheets = {
                 background-color: #f2f2f2;  
                 gridline-color: none;
         }
-        .QTabWidget::pane 
+        QTabWidget::pane 
         { 
                 border: 0; 
                 background-color: white;
         }
-        .QTabBar::tab::focus
+        QTabBar::tab::focus
         {
-                background-color: blue; 
+                background-color: lightgrey; 
                 font-weight: bold;
         }
-        .QTabBar::tab::hover
+        QTabBar::tab::hover
         {
                 background-color: lightgrey;
                 font-weight: bold;
                 color: darkslategrey;
         }
-        .QTabBar::tab::focus::hover
+        QTabBar::tab::focus::hover
         {
                 background-color: grey;
                 font-weight: bold;
+                color: white;
+        }
+        QTableView
+        {   
+            border: none;
+            alternate-background-color: #fbfbfb;
+            background-color: white;
+            color: black;
+        }
+        QTableView::item:hover
+        {   
+            color: black;
+            background: #ffdab9;  
+        }
+        QTableView::item:focus
+        {   
+            color: black;
+            background: #ADD8E6;  
+        }
+        QHeaderView::section
+        {
+            border: 0px solid black;
+            background-color: #fbffff;
+            color: black;
+            height: 50px;
+            text-align: right;
+            font-weight: bold;
+        }
+        QScrollBar:vertical {
+            width: 25px;
+            background-color: white;
+        }  
+        QScrollBar::handle::vertical
+        {
+            min-height: 100px;
+            background-color: lightgrey;
+        }
+        QScrollBar::up-arrow::vertical 
+        { 
+            background-color: #f2f2f2;
+            border: 0;
+        }
+
+        QScrollBar::down-arrow::vertical 
+        {
+            background-color: #f2f2f2;
+            border: 0;
+
         }
         """,
         
         
         ### Things that adjust the look of the tableview
-        'Table'    :""" .QTableView
-            {   
-                border: none;
-                alternate-background-color: #fbfbfb;
-                background-color: white;
-                color: black;
-            }
-            .QTableView::item:hover
-            {   
-                color: black;
-                background: #ffdab9;  
-            }
-            .QTableView::item:focus
-            {   
-                color: black;
-                background: #ADD8E6;  
-            }
-            .QHeaderView::section
-            {
-                border: 0px solid black;
-                background-color: #fbffff;
-                color: black;
-                height: 50px;
-                font-weight: bold;
-            }
-            QScrollBar:vertical {
-                width: 25px;
-                background-color: white;
-            }  
-            QScrollBar::handle::vertical
-            {
-                min-height: 100px;
-                background-color: lightgrey;
-            }
-            QScrollBar::up-arrow::vertical 
-            { 
-                background-color: #f2f2f2;
-                border: 0;
-            }
-    
-            QScrollBar::down-arrow::vertical 
-            {
-                background-color: #f2f2f2;
-                border: 0;
-
-            }
+        'table'    :""" 
             """,
             
             ### Things that change the look of the sidebar
