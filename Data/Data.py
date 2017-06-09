@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from __main__ import categories_filename
 import datetime as dt
-
+import string as string_lib
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
@@ -50,7 +50,7 @@ def list_check(search_item, LIST):
 
 
 # Converts a datetime to a string for displaying the dataframe data
-def date2time(time):
+def date2str(time):
     return dt.datetime.strftime(time,'%d/%m/%Y')
 
 
@@ -61,7 +61,7 @@ def convert_col(df,col,Type,error_msgs):
     try:
         if type(Type) == str:
             if 'date' in Type.lower() or 'time' in Type.lower():
-                df[col] = pd.to_datetime(df[col])  
+                df[col] = pd.to_datetime(df[col],format='%d/%m/%Y')  
         else:
             df[col] = df[col].apply(Type)
     except KeyError as e:
@@ -130,6 +130,10 @@ def unclutter(string):
         string = string.replace(i,'')
     return string
 
+# Capatilises the first letter of each string
+def capital(i):
+    return string_lib.capwords(i)
+
 # Categorises the data
 def categoriser(item):
     Type, Desc, Bal, In, Out, Date = item.lower().split(';')
@@ -146,6 +150,8 @@ def categoriser(item):
         return 'Bank Deposit'
     if 'interest' in Desc:
         return 'Interest'
+    if Desc == 'tan':
+        return 'Salary'
 
     cat = dict_value_search(Desc,cats)
 

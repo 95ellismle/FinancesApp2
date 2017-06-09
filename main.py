@@ -67,7 +67,8 @@ if len(bank_filepaths):
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Category'].apply(dr.categoriser)
         dict_bank_data[i] = dict_bank_data[i].sort_values(by='Date', ascending=False)
         dict_bank_data[i] = dict_bank_data[i][cols_ordered] # Re-Ordering the Columns
-
+        dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
+        dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
     #dr.save(dict_bank_data,'./')
 
 
@@ -80,3 +81,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App.Main()
     sys.exit(app.exec_())
+    
