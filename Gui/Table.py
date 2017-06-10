@@ -1,6 +1,6 @@
 # PyQt related imports
 from PyQt5.QtCore import QAbstractTableModel, Qt
-from PyQt5.QtWidgets import QAbstractScrollArea, QTableView, QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QHeaderView
+from PyQt5.QtWidgets import QAbstractScrollArea, QLineEdit, QTableView, QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QHeaderView
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports

@@ -3,10 +3,8 @@ from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QWidg
 from PyQt5.QtGui import QColor
 
 # Importing Modules from the App
-from Gui.Table import TablePage
+from Gui import Table, Plot, Special
 import Gui.StyleSheets as St
-
-
 # The Main Window... This Widget will be the main window.
 # Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
 class App(QWidget):
@@ -25,9 +23,18 @@ class App(QWidget):
         self.initUI()
     
     def initUI(self):
-        new_widget = TablePage()
+        TableStackItem = Table.TablePage()
+        PlotStackItem = Plot.PlotPage()
+        SpecialStackItem = Special.SpecialPage()
+        
         sidebar_frame = self.sideBar()
-        self.AllInOneLayout(self,[sidebar_frame,new_widget],VH="H")
+        
+        self.FullStack = QStackedWidget(self)
+        self.FullStack.addWidget(TableStackItem)
+        self.FullStack.addWidget(PlotStackItem)
+        self.FullStack.addWidget(SpecialStackItem)
+        
+        self.AllInOneLayout(self,[sidebar_frame,self.FullStack],VH="H")
         
         self.show()
     
@@ -36,13 +43,15 @@ class App(QWidget):
         sidebar_frame.setMinimumWidth(110)
         sidebar_frame.setStyleSheet(St.StyleSheets['Sidebar'])
         
-        button_titles = ['Data\nTables','Plotting']
+        button_titles = ['Data\nTables','Plotting','Click\nMe!']
         button_titles = button_titles + ['' for i in range(St.number_of_buttons_on_sidebar-len(button_titles))]
-        buttons = []    
+        buttons = []   
+        but_funcs = [self.tabButton, self.plotButton, self.specialButton ]
         for i in range(St.number_of_buttons_on_sidebar):
             button = QPushButton(button_titles[i])
             button.setMinimumSize(110,self.height()/St.number_of_buttons_on_sidebar)
             button.setStyleSheet(St.StyleSheets['Button%i'%i])
+            button.clicked.connect(but_funcs[i])
             buttons.append(button)
         self.AllInOneLayout(sidebar_frame,buttons,VH='V')#,Align=Qt.AlignTop) # add button and button2 to the sidebar_frame vertically, aligning them at the top.
         return sidebar_frame
@@ -65,3 +74,12 @@ class App(QWidget):
         if object:
             object.setLayout(layout)
         return layout
+
+    def tabButton(self):
+        self.FullStack.setCurrentIndex(0)
+
+    def plotButton(self):
+        self.FullStack.setCurrentIndex(1)
+    
+    def specialButton(self):
+        self.FullStack.setCurrentIndex(2)

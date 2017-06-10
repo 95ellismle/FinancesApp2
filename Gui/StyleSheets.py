@@ -5,8 +5,8 @@ from numpy import linspace
 
 table_background_colour = [250,250,250,255]
 Header_Font = ("Helvetica",16)
-Item_Font = ("Helvetica",14)
-Tab_Font = ("Helvetica",15)
+Item_Font = ("SansSerif",14)
+Tab_Font = ("SansSerif",15)
 Show_Table_Grid_Lines = True
 
 ###
@@ -14,7 +14,7 @@ Show_Table_Grid_Lines = True
 
 
 
-number_of_buttons_on_sidebar = 5
+number_of_buttons_on_sidebar = 3
 
 StyleSheets = {}
  ### Things that adjust the look of the tabs and the Table   
