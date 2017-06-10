@@ -1,61 +1,69 @@
 # Imports from PyQt 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+
+# Other Imports
+import pandas as pd
  
 # Imports from other modules
 from __main__ import dict_bank_data
-import random
  
-class PlotPage(QMainWindow):
+class PlotPage(QWidget):
  
     def __init__(self):
         super().__init__()
-        self.left = 10
-        self.top = 10
         self.title = 'PyQt5 matplotlib example - pythonspot.com'
-        self.width = 640
-        self.height = 400
         self.initUI()
  
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
  
-        m = PlotCanvas(self, width=5, height=4)
-        m.move(0,0)
- 
-        button = QPushButton('PyQt5 button', self)
-        button.setToolTip('This s an example button')
-        button.move(500,0)
-        button.resize(140,100)
- 
+        plot = PlotCanvas(XData=[1],YData=[1],parent=self)
+
+        self.AllInOneLayout(self,[plot])
+        
         self.show()
- 
+
+     # A function to place objects in a layout.
+    def AllInOneLayout(self,object,widgets,VH='V',Align=False):
+        if VH == "V":
+            layout = QVBoxLayout()
+        elif VH == "H":
+            layout = QHBoxLayout()
+        if Align:
+            layout.setAlignment(Align)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        for widg in widgets:
+            layout.addWidget(widg)
+        
+        if object:
+            object.setLayout(layout)
+        return layout 
  
 class PlotCanvas(FigureCanvas):
  
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
+    def __init__(self,XData, YData, parent=None):
+        fig = Figure(facecolor='white')
         self.axes = fig.add_subplot(111)
  
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
  
-        FigureCanvas.setSizePolicy(self,
-                QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.plot()
+        Data = dict_bank_data[27274868]
+        Data['Date'] = pd.to_datetime(Data['Date'])
+        Data = Data.groupby('Date').first()
+        Xdata,Ydata = [Data.index,Data['Balance']]
+        self.plot(Xdata,Ydata)
  
  
-    def plot(self):
-        data = [random.random() for i in range(25)]
+    def plot(self,Xdata,Ydata):
         ax = self.figure.add_subplot(111)
-        ax.plot(data, 'r-')
-        ax.set_title('PyQt Matplotlib Example')
+        ax.plot(Xdata,Ydata, 'g-')
         self.draw()
+    
