@@ -1,8 +1,15 @@
-table_background_colour = [245,255,255,255]
+from numpy import linspace
 
+table_background_colour = [250,250,250,255]
+
+Header_Font = ("Helvetica",16)
+Item_Font = ("Helvetica",14)
+Tab_Font = ("Helvetica",15)
+
+number_of_buttons_on_sidebar = 10
 #border: 1px solid black;
 StyleSheets = {                
-        ### Things that adjust the look of the tab         
+        ### Things that adjust the look of the tabs and the Table        
         'tab' :""" QTabBar::tab 
         {
                 background-color: #f2f2f2;  
@@ -50,7 +57,7 @@ StyleSheets = {
         QHeaderView::section
         {
             border: 0px solid black;
-            background-color: #fbffff;
+            background-color: #ebebeb;
             color: black;
             height: 50px;
             text-align: right;
@@ -80,49 +87,38 @@ StyleSheets = {
         """,
         
         
-        ### Things that adjust the look of the tableview
-        'table'    :""" 
-            """,
-            
-            ### Things that change the look of the sidebar
-            'sidebar':""" 
-            .QFrame
-            {
-                background-color: white;
-                border: 0;
-            }""",
-            
-            ### Things that change the look of the buttons on the sidebar
-            'button1':"""
-            .QPushButton
-            {
-                background-color: rgb(230,255,255);
-                color: rgb(139,69,19);
-                font-size: 25px;
-                border: 0;
-            }
-            .QPushButton::hover
-            {
-                background-color: rgb(200,255,255);
-                border: 0;
-                color: rgb(139,69,19);
-                font-size: 25px;
-                font-weight: bold;
-            }""",
-            
-            'button2':""".QPushButton
-            {
-                background-color: rgb(255,230,255);
-                border: 0;
-                color: rgb(240,69,19);
-                font-size: 25px;
-            }
-            .QPushButton::hover
-            {
-                background-color: rgb(255,200,255);
-                border: 0;
-                color: rgb(240,69,19);
-                font-size: 25px;
-                font-weight: bold;
-            }"""
+        'button2':""".QPushButton
+        {
+            background-color: rgb(240,250,255);
+            border: 0;
+            color: rgb(240,69,19);
+            font-size: 25px;
         }
+        .QPushButton::hover
+        {
+            background-color: rgb(255,200,255);
+            border: 0;
+            color: rgb(240,69,19);
+            font-size: 25px;
+            font-weight: bold;
+        }"""
+}
+       
+button_colours = ['rgb(%i,%i,%i)'%(i,i,i) for i in linspace(250,220,number_of_buttons_on_sidebar)]
+for i in range(number_of_buttons_on_sidebar):
+    StyleSheets['button'+str(i)] = """
+        .QPushButton
+        {
+            background-color: %s;
+            color: rgb(139,69,19);
+            font-size: 25px;
+            border: 0;
+        }
+        .QPushButton::hover
+        {
+            background-color: rgb(255,240,190);
+            border: 0;
+            color: rgb(139,69,19);
+            font-size: 29px;
+            font-weight: 900;
+        }"""%(button_colours[i])
