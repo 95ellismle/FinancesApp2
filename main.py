@@ -72,13 +72,13 @@ if len(bank_filepaths):
     #dr.save(dict_bank_data,'./')
 
 
-from Gui import Table
+from Gui import App
 import sys
 from PyQt5.QtWidgets import QApplication
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Table.TablePage()
+    ex = App.App()
     sys.exit(app.exec_())
     

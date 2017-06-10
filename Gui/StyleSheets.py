@@ -1,42 +1,24 @@
 from numpy import linspace
 
-table_background_colour = [250,250,250,255]
 
+### Table Related Styles
+
+table_background_colour = [250,250,250,255]
 Header_Font = ("Helvetica",16)
 Item_Font = ("Helvetica",14)
 Tab_Font = ("Helvetica",15)
+Show_Table_Grid_Lines = True
 
-number_of_buttons_on_sidebar = 10
-#border: 1px solid black;
-StyleSheets = {                
-        ### Things that adjust the look of the tabs and the Table        
-        'tab' :""" QTabBar::tab 
-        {
-                background-color: #f2f2f2;  
-                gridline-color: none;
-        }
-        QTabWidget::pane 
-        { 
-                border: 0; 
-                background-color: white;
-        }
-        QTabBar::tab::focus
-        {
-                background-color: lightgrey; 
-                font-weight: bold;
-        }
-        QTabBar::tab::hover
-        {
-                background-color: lightgrey;
-                font-weight: bold;
-                color: darkslategrey;
-        }
-        QTabBar::tab::focus::hover
-        {
-                background-color: grey;
-                font-weight: bold;
-                color: white;
-        }
+###
+
+
+
+
+number_of_buttons_on_sidebar = 5
+
+StyleSheets = {}
+ ### Things that adjust the look of the tabs and the Table   
+StyleSheets['Table']  = """
         QTableView
         {   
             border: none;
@@ -84,33 +66,52 @@ StyleSheets = {
             border: 0;
 
         }
-        """,
-        
-        
-        'button2':""".QPushButton
+
+"""
+
+StyleSheets['Tab'] = """ 
+        QTabBar::tab 
         {
-            background-color: rgb(240,250,255);
-            border: 0;
-            color: rgb(240,69,19);
-            font-size: 25px;
+                background-color: #f2f2f2;  
+                gridline-color: none;
         }
-        .QPushButton::hover
+        QTabWidget::pane 
+        { 
+                border: 0; 
+                background-color: white;
+        }
+        QTabBar::tab::focus
         {
-            background-color: rgb(255,200,255);
-            border: 0;
-            color: rgb(240,69,19);
-            font-size: 25px;
-            font-weight: bold;
-        }"""
-}
-       
-button_colours = ['rgb(%i,%i,%i)'%(i,i,i) for i in linspace(250,220,number_of_buttons_on_sidebar)]
+                background-color: lightgrey; 
+                font-weight: bold;
+        }
+        QTabBar::tab::hover
+        {
+                background-color: lightgrey;
+                font-weight: bold;
+                color: darkslategrey;
+        }
+        QTabBar::tab::focus::hover
+        {
+                background-color: grey;
+                font-weight: bold;
+                color: white;
+        }
+        """
+        
+StyleSheets['Sidebar'] = """.QFrame 
+        {
+            background-color: white;
+        }
+"""
+
+button_colours = ['rgb(%i,%i,%i)'%(i,i,i) for i in linspace(250,210,number_of_buttons_on_sidebar)]
 for i in range(number_of_buttons_on_sidebar):
-    StyleSheets['button'+str(i)] = """
+    StyleSheets['Button'+str(i)] = """
         .QPushButton
         {
             background-color: %s;
-            color: rgb(139,69,19);
+            color: darkslategrey;
             font-size: 25px;
             border: 0;
         }
@@ -118,7 +119,7 @@ for i in range(number_of_buttons_on_sidebar):
         {
             background-color: rgb(255,240,190);
             border: 0;
-            color: rgb(139,69,19);
-            font-size: 29px;
+            color: darkslategrey;
+            font-size: 27px;
             font-weight: 900;
         }"""%(button_colours[i])
