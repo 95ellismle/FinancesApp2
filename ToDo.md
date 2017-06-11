@@ -1,6 +1,6 @@
 #DATA TABLES
 
-* Change the size of the tab bar.
+* Change the size of the tab bar and stop them loosing focus.
 
 * Add a function to google the description of transaction when clicked in the table.
 
