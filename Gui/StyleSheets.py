@@ -12,9 +12,18 @@ Show_Table_Grid_Lines = True
 ###
 
 
-
+### App Styles
 
 number_of_buttons_on_sidebar = 3
+
+###
+
+
+### Plotting Page Styles
+
+Command_Font = ("Helvetica",16)
+
+###
 
 StyleSheets = {}
  ### Things that adjust the look of the tabs and the Table   
@@ -102,6 +111,41 @@ StyleSheets['Tab'] = """
 StyleSheets['Sidebar'] = """.QFrame 
         {
             background-color: white;
+        }
+"""
+
+StyleSheets['Ok Button'] = """.QPushButton
+        {
+            background-color: green;
+            color: white;
+            font-size: 14;
+            font-weight: bold;
+            border: 0;
+        }
+        .QPushButton::hover
+        {
+            background-color: lightgreen;
+            color: black;
+            font-size: 15;
+            font-weight: 900;
+            border: 0;
+        }
+"""
+
+StyleSheets['Text Frame'] = """.QPlainTextEdit
+        {
+            background-color: #f0f0f0;
+            color: black;
+            font-size: 14;
+            font-weight: bold;
+            border: 0;
+        }
+        .QPlainTextEdit::hover
+        {
+            background-color: #F0F8FF;
+            font-size: 14;
+            font-weight: bold;
+            border: 0;
         }
 """
 

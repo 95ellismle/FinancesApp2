@@ -55,7 +55,7 @@ def date2str(time):
 
 
 # Converts the type of a column in a dataframe
-def convert_col(df,col,Type,error_msgs):
+def convert_col(df,col,Type,error_msgs=[]):
     col = col.lower()
     col = col[0].upper() + col[1:]
     try:
@@ -101,28 +101,37 @@ def save(data,filepath):
 
 # Removes any comments (Those with a hash) from some text
 def comment_remove(string):
-    hash_ind = string.find('#')
-    if hash_ind != -1:
-        carriage_ind = string[hash_ind:].find('\n') + 1
-        string = string[carriage_ind:]
-        return comment_remove(string)
-    else:
-        return string
+    x = [i for i in string.split('\n') if i]
+    x = [i for i in x if i[0] != '#']
+    x = [i[:i.find('#')] if i.find('#') != -1 else i for i in x ]
+    string = '\n'.join(x)
+    return string
 
 # Parses the dictionary data from a txt file into a dictionary
 def dict_parser(filepath):
-    ### Reading the file containing info on categorising the data
-    categories_file = open(filepath,'r')
-    categories_txt = comment_remove(categories_file.read())
-    categories_file.close()
-    # Parsing the category file data.
-    x = [comment_remove(i.replace('\n','').replace('\t','').replace(' ','').replace('\_',' ')) for i in categories_txt.split(';')]
+    try:
+        ### Reading the file containing info on categorising the data
+        categories_file = open(filepath,'r')
+        categories_txt = comment_remove(categories_file.read())
+        categories_file.close()
+    except OSError:
+        categories_txt = filepath
+    categories_txt = comment_remove(categories_txt)
+    # Parsing the category file data
+    x = [i.replace('\n','').replace('\t','').replace(' ','').replace('\_',' ') for i in categories_txt.split(';')]
     x = [i for i in x if i] # Removes any empty strings and the like...
     CATS = {i.split(':')[0]:[j.upper() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
     ###
     return CATS
 
 cats = dict_parser(categories_filename)
+
+# Returns a string from a dictionary
+def dict2str(dictionary):
+    string =''
+    for i in dictionary:
+        string += str(i) + ': ' + ', '.join(dictionary[i]) + ';\n'
+    return string
 
 # Removes Certain Strings from the Description of the Transaction to make it more readable
 def unclutter(string):

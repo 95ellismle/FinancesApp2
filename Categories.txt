@@ -28,4 +28,4 @@ Rent,\_Bills\_&\_Fines:		Counc, SECURITY\_YORK , LAUNDERETTE , BILLS , SPLIT\_PR
 
 Cash:	LNK ;
 
-Salary:	
+Salary:;

@@ -1,9 +1,9 @@
 # Importing Modules from PyQt5
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QStackedWidget
+from PyQt5.QtWidgets import QSizePolicy, QPushButton, QFrame, QWidget, QStackedWidget
 from PyQt5.QtGui import QColor
 
 # Importing Modules from the App
-from Gui import Table, Plot, Special
+from Gui import Table, Plot, Special, Funcs
 import Gui.StyleSheets as St
 # The Main Window... This Widget will be the main window.
 # Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
@@ -34,7 +34,7 @@ class App(QWidget):
         self.FullStack.addWidget(PlotStackItem)
         self.FullStack.addWidget(SpecialStackItem)
         
-        self.AllInOneLayout(self,[sidebar_frame,self.FullStack],VH="H")
+        Funcs.AllInOneLayout(self,[sidebar_frame,self.FullStack],Stretches=[1,10],VH="H")
         
         self.show()
     
@@ -49,32 +49,17 @@ class App(QWidget):
         but_funcs = [self.tabButton, self.plotButton, self.specialButton ]
         for i in range(St.number_of_buttons_on_sidebar):
             button = QPushButton(button_titles[i])
-            button.setMinimumSize(110,self.height()/St.number_of_buttons_on_sidebar)
             button.setStyleSheet(St.StyleSheets['Button%i'%i])
             button.clicked.connect(but_funcs[i])
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             buttons.append(button)
-        self.AllInOneLayout(sidebar_frame,buttons,VH='V')#,Align=Qt.AlignTop) # add button and button2 to the sidebar_frame vertically, aligning them at the top.
+            
+        Funcs.AllInOneLayout(sidebar_frame, buttons, VH='V')# add button and button2 to the sidebar_frame vertically, aligning them at the top.
+                
+        #frame_layout.setSizeLayout(QSizePolicy.Expanding, QSizePolicy.Expanding)        
         return sidebar_frame
     
-    # A function to place objects in a layout.
-    def AllInOneLayout(self,object,widgets,VH='V',Align=False):
-        if VH == "V":
-            layout = QVBoxLayout()
-        elif VH == "H":
-            layout = QHBoxLayout()
-        
-        if Align:
-            layout.setAlignment(Align)
-        
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        for widg in widgets:
-            layout.addWidget(widg)
-        
-        if object:
-            object.setLayout(layout)
-        return layout
-
+    # These buttons change which widget we can see in the stacked widget
     def tabButton(self):
         self.FullStack.setCurrentIndex(0)
 

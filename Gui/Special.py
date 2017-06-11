@@ -13,7 +13,7 @@ class SpecialPage(QWidget):
         
     def initUI(self):
         
-        l1 = QLabel("Peek A Boo!")
+        l1 = QLabel("Peek-A-Boo!")
         font = QFont("Comic Sans", 25)
         l1.setFont(font)
         self.AllInOneLayout(self,[l1],Align=Qt.AlignCenter)

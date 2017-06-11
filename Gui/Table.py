@@ -9,6 +9,7 @@ from numpy import shape
 # Importing some required variables from the main code
 from __main__ import dict_bank_data, act_nums
 from Data import Data as dr
+from Gui import Funcs
 import Gui.StyleSheets as St
 
 # This is some code taken from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
@@ -82,7 +83,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             Ifont = QFont(*St.Item_Font)
             self.view.setFont(Ifont)
             ###
-            self.AllInOneLayout(self.tabWidget,[self.view]) # add the self.view object to the self.tabWidget object's layout
+            Funcs.AllInOneLayout(self.tabWidget,[self.view]) # add the self.view object to the self.tabWidget object's layout
             
             Tfont = QFont(*St.Tab_Font)
             self.myTabs.setFont(Tfont)
@@ -92,26 +93,10 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         ###
         
         ### Sorting out the Layout
-        self.AllInOneLayout(self,[self.myTabs],VH='H') # Add the sidebar_frame and myTabs to the layout of the page horizontally.
+        Funcs.AllInOneLayout(self,[self.myTabs],VH='H') # Add the sidebar_frame and myTabs to the layout of the page horizontally.
         ###
         
         self.show() # show the entire app
-    
-    # A function to place objects in a layout.
-    def AllInOneLayout(self,object,widgets,VH='V',Align=False):
-        if VH == "V":
-            layout = QVBoxLayout()
-        elif VH == "H":
-            layout = QHBoxLayout()
-        if Align:
-            layout.setAlignment(Align)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        for widg in widgets:
-            layout.addWidget(widg)
-        if object:
-            object.setLayout(layout)
-        return layout
         
     # This function creates the table using a TableView
     def createTable(self, data):

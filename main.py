@@ -62,14 +62,20 @@ if len(bank_filepaths):
     ###
     cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
     for i in dict_bank_data:
-        dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Category'].apply(dr.categoriser)
         dict_bank_data[i] = dict_bank_data[i].sort_values(by='Date', ascending=False)
         dict_bank_data[i] = dict_bank_data[i][cols_ordered] # Re-Ordering the Columns
         dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
         dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
-    #dr.save(dict_bank_data,'./')
+        dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
+
+x = """# This is how to control the plotting.\n
+# Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
+# A full rundown of the commands will be provided in the README.md file.\n
+# Feel free to delete all these comments (marked with a hash).
+\nYData:  Balance, Out;
+XData: default;"""
 
 
 from Gui import App
@@ -81,4 +87,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App.App()
     sys.exit(app.exec_())
-    
