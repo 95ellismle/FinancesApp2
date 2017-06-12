@@ -4,7 +4,8 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 # A function to place objects in a layout.
 # Align decideds the alignment of the layout, the Margins decide the margins and spacing decides the spacing between widgets.
 # VH decides whether the widgets are aligned vertically or horizontally. Object is the parent widget, widgets are the children.
-def AllInOneLayout(Parent,widgets,Stretches=[1], VH='V',Align=False, Margins=[0,0,0,0], Spacing=0):
+# Stretches must be a list and decides how big the widget is compared to its siblings.
+def AllInOneLayout(Parent,children,Stretches=[1], VH='V',Align=False, Margins=[0,0,0,0], Spacing=0):
     if VH.lower() == "v":
         layout = QVBoxLayout()
     elif VH.lower() == 'h':
@@ -21,11 +22,15 @@ def AllInOneLayout(Parent,widgets,Stretches=[1], VH='V',Align=False, Margins=[0,
     
     # Add widgets to the layout
     try:
-        Stretches = Stretches*len(widgets)
-        for i in range(len(widgets)):
-            layout.addWidget(widgets[i],Stretches[i])
+        try:
+            Stretches[0]
+        except TypeError:
+            Stretches = list(Stretches)
+        Stretches = Stretches*len(children)
+        for i in range(len(children)):
+            layout.addWidget(children[i],Stretches[i])
     except TypeError as e:
-        layout.addWidget(widgets, Stretches[0])
+        layout.addWidget(children, Stretches[0])
         
     # Add the layout to the parent widget.
     if Parent:

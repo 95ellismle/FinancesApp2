@@ -53,6 +53,12 @@ def list_check(search_item, LIST):
 def date2str(time):
     return dt.datetime.strftime(time,'%d/%m/%Y')
 
+# Convert a string to a float and ignore exceptions
+def str2float(i):
+    try:
+        return float(i)
+    except:
+        return None
 
 # Converts the type of a column in a dataframe
 def convert_col(df,col,Type,error_msgs=[]):
@@ -107,8 +113,9 @@ def comment_remove(string):
     string = '\n'.join(x)
     return string
 
-# Parses the dictionary data from a txt file into a dictionary
-def dict_parser(filepath):
+# Parses the dictionary data from a txt file into a dictionary.
+# filepath is the filepath of the text file or can be a string that needs parsing. LUC refers to whether the text should be lower or uppercase or capitilised first word.
+def dict_parser(filepath,LUC='c'):
     try:
         ### Reading the file containing info on categorising the data
         categories_file = open(filepath,'r')
@@ -116,11 +123,23 @@ def dict_parser(filepath):
         categories_file.close()
     except OSError:
         categories_txt = filepath
-    categories_txt = comment_remove(categories_txt)
+    last_sc = categories_txt.rfind(';')
+    if last_sc == -1:
+        last_sc = None
+    categories_txt = comment_remove(categories_txt[:last_sc])
     # Parsing the category file data
     x = [i.replace('\n','').replace('\t','').replace(' ','').replace('\_',' ') for i in categories_txt.split(';')]
     x = [i for i in x if i] # Removes any empty strings and the like...
-    CATS = {i.split(':')[0]:[j.upper() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+    if LUC:
+        if LUC.lower() == 'l':
+            CATS = {i.lower().split(':')[0]:[j.lower() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+        if LUC.lower() == 'u':
+                    CATS = {i.upper().split(':')[0]:[j.upper() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+        if LUC.lower() == 'c':
+                    CATS = {string_lib.capwords(i).split(':')[0]:[string_lib.capwords(j) for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+
+    else:
+        CATS = {i.split(':')[0]:[j for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
     ###
     return CATS
 

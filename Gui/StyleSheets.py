@@ -1,6 +1,5 @@
 from numpy import linspace
 
-
 ### Table Related Styles
 
 table_background_colour = [250,250,250,255]
@@ -15,6 +14,7 @@ Show_Table_Grid_Lines = True
 ### App Styles
 
 number_of_buttons_on_sidebar = 3
+sidebar_button_colour = '#f0f0ff'
 
 ###
 
@@ -38,7 +38,7 @@ StyleSheets['Table']  = """
         QTableView::item:hover
         {   
             color: black;
-            background: #ffdab9;  
+            background: rgb(255,240,190);  
         }
         QTableView::item:focus
         {   
@@ -142,14 +142,13 @@ StyleSheets['Text Frame'] = """.QPlainTextEdit
         }
         .QPlainTextEdit::hover
         {
-            background-color: #F0F8FF;
+            background-color: white;
             font-size: 14;
             font-weight: bold;
             border: 0;
         }
 """
 
-button_colours = ['rgb(%i,%i,%i)'%(i,i,i) for i in linspace(250,210,number_of_buttons_on_sidebar)]
 for i in range(number_of_buttons_on_sidebar):
     StyleSheets['Button'+str(i)] = """
         .QPushButton
@@ -166,4 +165,4 @@ for i in range(number_of_buttons_on_sidebar):
             color: darkslategrey;
             font-size: 27px;
             font-weight: 900;
-        }"""%(button_colours[i])
+        }"""%(sidebar_button_colour)
