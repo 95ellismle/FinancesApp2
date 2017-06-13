@@ -38,14 +38,10 @@ def AllInOneLayout(Parent,children,Stretches=[1], VH='V',Align=False, Margins=[0
         
     return layout
 
-
-# A function to remove any substring enclosed between 2 ~ symbols within a string
-def abs_remove(string):
-         first = string.find('~')
-         last =  string.rfind('~')
-         if first != -1 and last != -1:
-             return string[:first]+ string[last+1:]
-         else:
-             return string
-    
-    
+# Just tries to get the values associated with a dictionary, if the key isn't there it silently ignores it and returns None
+def dict_value_get(dictionary,value):
+    value = [i for i in dictionary.keys() if value in i]
+    try:
+        return dictionary[value[0]]
+    except IndexError:
+        return None

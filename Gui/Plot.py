@@ -7,28 +7,26 @@ from PyQt5.QtGui import QFont
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavBar
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
  
 # Other Imports
-from numpy import array, gradient
-from pandas.tslib import Timestamp as timstmp
-from pandas import to_datetime
+from numpy import array
 
 # Imports from other modules
-from __main__ import dict_bank_data, act_nums
+from __main__ import dict_bank_data, act_nums, Plottable_cols
 from Data import Data as dr
-from Gui.Funcs import AllInOneLayout, abs_remove
+from Gui.Funcs import AllInOneLayout, dict_value_get
 from Gui import StyleSheets as St
 
 Plot_Mesg = """# This is how to control the plotting.\n
 # Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
 # A full rundown of the commands will be provided in the README.md file.\n
 # Feel free to delete all these comments (marked with a hash).
-~For Help simply type 'help' anywhere in this box~
+# For Help simply type press Cntrl-H (you may need to click this textbox).
 \nYData:  Balance;
 """
 
-Help_Mesg = "#Feature Coming Soon"
+default_plots = {'balance':{'color':'#00ff00','ls':'-','type':'scatter'},'in':{'color':'g','width':1.4,'type':'bar','edgecolor':'g'},'out':{'color':'r','width':1.4,'type':'bar','edgecolor':'r'}}
 
 class App_Bit(QWidget):
     def __init__(self):
@@ -50,7 +48,8 @@ class PlotPage(QWidget):
     def __init__(self):
         super().__init__()
         self.plot_params = {}
-        self.Plot_Mesg = Plot_Mesg        
+        self.Plot_Mesg = Plot_Mesg    
+        self.length_y = 1
         self.initUI()
     
     def initUI(self):    
@@ -78,67 +77,46 @@ class PlotPage(QWidget):
     # A function to connect the OK_Button on the bottom of the plotting page to retrieving the data and plotting it.
     def Ok_Button_Click(self):
         control_text = self.control_box.toPlainText()
-        control_text = abs_remove(control_text)
-        if 'help' in control_text.lower():
-            self.parent().parent().FullStack.setCurrentIndex(1)
-        else:
-            self.plot_params = dr.dict_parser(control_text)
-            self.Plot_Mesg = dr.dict2str(self.plot_params)
-            self.control_box.setPlainText(self.Plot_Mesg)
-            self.data_plot(self.plot_params)
-    
+        self.plot_params = dr.dict_parser(control_text)
+        self.Plot_Mesg = dr.dict2str(self.plot_params)
+        self.control_box.setPlainText(self.Plot_Mesg)
+        self.data_plot(self.plot_params)
+
     # Controls what gets plotted according to the control_box
     def data_plot(self, plt_prms):
         if 'Ydata' in plt_prms.keys():
             try:
                 # Parse the parameters from the text
-                y = self.dict_value_get(plt_prms, 'Ydata')
-                x = self.dict_value_get(plt_prms, 'Xdata')
-                act = self.dict_value_get(plt_prms, 'Act')
-                act = self.act_num_handler(act,len(y))
+                y = dict_value_get(plt_prms, 'Ydata')
+                self.length_y  = len(y)
+                x = dict_value_get(plt_prms, 'Xdata')
+                act = dict_value_get(plt_prms, 'Act')
+                act = self.act_num_handler(act)
                 # Checking whether the parameters have been stated and if not set them to defaults
-                x = self.not_var(x,'Date',len(y))
+                x = self.not_var(x,'Date')
                 
-                Data = dict_bank_data[act[0]]
-                XData = Data[x[0]].apply(dr.dataPrep)
-                YData = Data[y[0]].apply(dr.dataPrep)
-                e = self.Graph.plot(XData,YData)
+                e = self.Graph.plot(x,y,act)
                 if e:
                     self.control_box.setPlainText("#Sorry there is something wrong with the format of the data that you want plotting\n")
                     self.control_box.appendPlainText("#Are you sure this is numeric data?\n")
                     self.control_box.appendPlainText("\n#Error = " + str(e))
                     self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15)+"\n\nYData: Balance;\nXData: Date;")
             except KeyError as e:
-
                 self.control_box.setPlainText("#Sorry I can't find any data named '"+str(e)+"'.\n\n#The full list of data categories you can use are:")
-                for i in dict_bank_data[act_nums[0]]:
+                for i in Plottable_cols:
                     self.control_box.appendPlainText("\t#"+str(i))
-                self.control_box.appendPlainText("\n#Some of these may not be numeric and unavailable for plotting")
                 self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15)+"\n\nYData: Balance;")
         else:
             self.control_box.setPlainText("# You at least need the Ydata Parameter, like below:")
             self.control_box.appendPlainText("\n\nYData: Balance;")
-            
-    # Just tries to get the values associated with a dictionary, if the key isn't there it silently throws an error    
-    def dict_value_get(self,dictionary,value):
-        value = [i for i in dictionary.keys() if value in i]
-        try:
-            return dictionary[value[0]]
-        except IndexError:
-            return False
-    
-    # Handles the parsing of the ydata and xdata parameters
-    def dataParser(self,x,length_y):
-        x = self.not_var(x,'Date',length_y)
-        return x
-    
+                    
     # Deals with the account number parameter
-    def act_num_handler(self,act,length_of_y):
+    def act_num_handler(self,act):
         ### If the account number parameters have been set convert them to ints
         if type(act) == list:
             act = [dr.str2int(i) for i in act] 
         ###
-        act = self.not_var(act,act_nums[0],length_of_y) #If they haven't been set use default settings
+        act = self.not_var(act,act_nums[0]) #If they haven't been set use default settings
         try:
             act = [act_nums[i-1] if i < 1000 else i for i in act] # If the chosen number is less than 1000, assume it is an index of the accounts rather than an account number
         except IndexError:
@@ -152,50 +130,47 @@ class PlotPage(QWidget):
         return act
     
     # A very simple repeated function checking whether a function has any data
-    def not_var(self,var,replace,repeat):
+    def not_var(self,var,replace):
         try:
-            if len(var) < repeat:
-                var = var+[replace]*(repeat-len(var))
+            if len(var) < self.length_y:
+                var = var+[replace]*(self.length_y-len(var))
                 return var
         except:
             pass
         if not var:
-            var = [replace]*repeat
+            var = [replace]*self.length_y
         return var
             
     # Binds Cntrl+Enter to the Ok_Button
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
-            if e.key() == Qt.Key_Return:
+            if e.key() == Qt.Key_H:
+                self.parent().parent().FullStack.setCurrentIndex(1)
+            elif e.key() == Qt.Key_Return:
                 self.Ok_Button_Click()
             
 class PlotCanvas(FigureCanvas):
  
     def __init__(self,XData, YData, parent=None):
         self.parent = parent
-        Data = dict_bank_data[27274868]
-        dr.convert_col(Data,'Date','Date')
-        Data = Data.groupby('Date').last()
-        Xdata,Ydata = [Data.index,Data['Balance']]
-        self.count = 0
         self.fig = self.make_figure()
         self.ax = self.fig.add_subplot(111)
-        self.plot(Xdata,Ydata)
+        self.plot(['Date'],['Balance'],[act_nums[0]])
         
-    def plot(self,Xdata,Ydata,Ls='-',Color='g'):
+    def plot(self,Xvar, Yvar, Account_numbers, Ls='-', Color='g'):
         error = False
         self.ax.cla()
         try:
-            if type(Xdata) == list and type(Ydata) == list:
-                for i in range(len(Xdata)):
-                    self.ax.plot(array(Xdata[i]),array(Ydata),'g.')
-            else:
-                self.ax.plot(array(Xdata),array(Ydata), 'g.')
+            for i in range(len(Yvar)):
+                Data = dict_bank_data[Account_numbers[i]]
+                XData = [Data.loc[:,Xvar[i]].apply(dr.dataPrep) for i in range(self.parent.length_y)]
+                YData = [Data.loc[:,Yvar[i]].apply(dr.dataPrep) for i in range(self.parent.length_y)]
+                self.whichPlot(array(XData[i]),array(YData[i]),self.ax,default_plots[Yvar[i].lower()])
         except ValueError as e:
             error = e
             print("Could Not Plot Data, Wrong Types were given")
-            print("XData = \n",Xdata,"\nX-Type = ",type(Xdata[0]))
-            print("YData = \n",Ydata,"\nY-Type = ",type(Ydata[0]))
+            print("XData = \n",XData,"\nX-Type = ",type(XData[0]))
+            print("YData = \n",YData,"\nY-Type = ",type(YData[0]))
         self.ax.grid(color='#b0b0b0', lw=0.5)
         self.ax.spines['bottom'].set_visible(False)
         self.ax.spines['left'].set_visible(False)
@@ -206,7 +181,22 @@ class PlotCanvas(FigureCanvas):
             error = e
         return error
 
-    
+    def whichPlot(self,xdata,ydata,axis,plt_prms=False):
+        if plt_prms:
+            Type = dict_value_get(plt_prms, 'type')
+            color = dict_value_get(plt_prms, 'color')
+            if Type.lower() == 'scatter':
+                ls = dict_value_get(plt_prms, 'ls')
+                axis.plot(xdata,ydata,color=color,ls=ls)
+            elif Type.lower() == 'bar':
+                edgecolor = dict_value_get(plt_prms, 'edgec')
+                width = dict_value_get(plt_prms, 'width')
+                axis.bar(xdata,ydata,color=color,edgecolor=edgecolor,width=width)
+            else:
+                return "# Plot Type, %s, Not Recognised"%str(Type)
+        else:
+            axis.plot(xdata,ydata,'k.')
+            
     def make_figure(self):
         fig = Figure(facecolor='white')
         self.axes = fig.add_subplot(111)

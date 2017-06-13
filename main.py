@@ -58,6 +58,7 @@ if len(bank_filepaths):
         dict_bank_data[i] = dict_bank_data[i].drop([col for col in bank_data.columns if 'Acc' in col], axis=1)
     ###
     cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
+    Plottable_cols = []
     for i in dict_bank_data:
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Category'].apply(dr.categoriser)
@@ -66,6 +67,11 @@ if len(bank_filepaths):
         dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
         dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
         dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
+    
+    for col in dict_bank_data[act_nums[0]].columns:
+        if dict_bank_data[act_nums[0]][col].apply(dr.dataPrep).dtype != object:
+            Plottable_cols.append(col)
+
 
 
 from Gui import App
