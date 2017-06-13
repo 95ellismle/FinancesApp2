@@ -7,7 +7,7 @@ Header_Font = ("Helvetica",16)
 Item_Font = ("SansSerif",14)
 Tab_Font = ("SansSerif",15)
 Show_Table_Grid_Lines = False
-
+Search_Bar_Font = ("Helvetica", 16)
 ###
 
 
@@ -157,6 +157,16 @@ StyleSheets['Help Frame'] = """.QLabel
             font-size: 14;
             font-weight: normal;
             border: 0;
+        }
+"""
+
+StyleSheets['Search'] = """.QLineEdit
+        {
+            background-color: #ddddff;
+            color: #333300;
+            border: 0;
+            font-weight: bold;
+            font-size: 14;
         }
 """
 

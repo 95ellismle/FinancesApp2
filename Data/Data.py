@@ -50,8 +50,14 @@ def list_check(search_item, LIST):
 
 
 # Converts a datetime to a string for displaying the dataframe data
-def date2str(time):
-    return dt.datetime.strftime(time,'%d/%m/%Y')
+def TablePrep(item):
+    try:
+        return dt.datetime.strftime(item,'%d/%m/%Y')
+    except TypeError:
+        try:
+            return str(item)
+        except:
+            return None
 
 # Converts a string to an integer if possible and if it below a certain value
 def str2int(string):

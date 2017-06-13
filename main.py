@@ -60,12 +60,12 @@ if len(bank_filepaths):
     cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
     Plottable_cols = []
     for i in dict_bank_data:
+        dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Type'].apply(str)+';'+ dict_bank_data[i].loc[:,'Description'].apply(str)+';'+dict_bank_data[i].loc[:,'Balance'].apply(str)+';'+dict_bank_data[i].loc[:,'In'].apply(str)+';'+dict_bank_data[i].loc[:,'Out'].apply(str)+';'+ dict_bank_data[i].loc[:,'Date'].apply(str)
         dict_bank_data[i].loc[:,'Category'] = dict_bank_data[i].loc[:,'Category'].apply(dr.categoriser)
         dict_bank_data[i] = dict_bank_data[i].sort_values(by='Date', ascending=False)
         dict_bank_data[i] = dict_bank_data[i][cols_ordered] # Re-Ordering the Columns
         dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
-        dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
         dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
     
     for col in dict_bank_data[act_nums[0]].columns:

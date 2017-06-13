@@ -20,13 +20,11 @@ from Gui import StyleSheets as St
 
 Plot_Mesg = """# This is how to control the plotting.\n
 # Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
-# A full rundown of the commands will be provided in the README.md file.\n
-# Feel free to delete all these comments (marked with a hash).
 # For Help simply type press Cntrl-H (you may need to click this textbox).
 \nYData:  Balance;
 """
 
-default_plots = {'balance':{'color':'#00ff00','ls':'-','type':'scatter'},'in':{'color':'g','width':1.4,'type':'bar','edgecolor':'g'},'out':{'color':'r','width':1.4,'type':'bar','edgecolor':'r'}}
+default_plots = {'balance':{'color':'#568203','ls':'-','type':'scatter'},'in':{'color':'#00ff5a','width':3,'type':'bar','edgecolor':None},'out':{'color':'r','width':1.4,'type':'bar','edgecolor':'r'}}
 
 class App_Bit(QWidget):
     def __init__(self):
@@ -100,15 +98,17 @@ class PlotPage(QWidget):
                     self.control_box.setPlainText("#Sorry there is something wrong with the format of the data that you want plotting\n")
                     self.control_box.appendPlainText("#Are you sure this is numeric data?\n")
                     self.control_box.appendPlainText("\n#Error = " + str(e))
-                    self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15)+"\n\nYData: Balance;\nXData: Date;")
+                    self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
+                    self.control_box.appendPlainText(dr.dict2str(self.plot_params))
             except KeyError as e:
                 self.control_box.setPlainText("#Sorry I can't find any data named '"+str(e)+"'.\n\n#The full list of data categories you can use are:")
                 for i in Plottable_cols:
                     self.control_box.appendPlainText("\t#"+str(i))
-                self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15)+"\n\nYData: Balance;")
+                self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
+                self.control_box.appendPlainText(dr.dict2str(self.plot_params))
         else:
             self.control_box.setPlainText("# You at least need the Ydata Parameter, like below:")
-            self.control_box.appendPlainText("\n\nYData: Balance;")
+            self.control_box.appendPlainText("YData: Balance;\nAct_N:1;")
                     
     # Deals with the account number parameter
     def act_num_handler(self,act):
@@ -133,7 +133,7 @@ class PlotPage(QWidget):
     def not_var(self,var,replace):
         try:
             if len(var) < self.length_y:
-                var = var+[replace]*(self.length_y-len(var))
+                var = var+var*(self.length_y-len(var))
                 return var
         except:
             pass

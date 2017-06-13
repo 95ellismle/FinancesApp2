@@ -1,10 +1,11 @@
 # PyQt related imports
 from PyQt5.QtCore import QAbstractTableModel, Qt
-from PyQt5.QtWidgets import QAbstractScrollArea, QLineEdit, QTableView, QWidget, QHBoxLayout, QVBoxLayout, QTabWidget, QHeaderView
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtWidgets import QAbstractScrollArea, QTabBar, QTableView, QWidget, QTabWidget, QHeaderView, QInputDialog, QLineEdit
+from PyQt5.QtGui import QFont, QColor, QStandardItem
 
 # Other Imports
-from numpy import shape
+from numpy import shape, column_stack
+import pandas as pd
 
 # Importing some required variables from the main code
 from __main__ import dict_bank_data, act_nums
@@ -26,7 +27,7 @@ class PandasModel(QAbstractTableModel):
         self._cols = data.columns           # Gets the dataframe columns
         self.r, self.c = shape(self._data)  # Finds the dimensions of the dataframe
      
-    # rowCount, columnCount and data are all necessary functions to call when using the QAbstractTableModel.
+    ### rowCount, columnCount and data are all necessary functions to call when using the QAbstractTableModel.
     def rowCount(self, parent=None): 
         return self.r
     
@@ -36,8 +37,9 @@ class PandasModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid():
             if role == Qt.DisplayRole:
-                return self._data[index.row(),index.column()]
+                return dr.TablePrep(self._data[index.row(),index.column()])
         return None
+    ###
 
     # Well behaved models also implement headerData (taken from http://pyqt.sourceforge.net/Docs/PyQt4/qabstracttablemodel.html)
     def headerData(self, p_int, orientation, role):
@@ -47,6 +49,15 @@ class PandasModel(QAbstractTableModel):
             elif orientation == Qt.Vertical:
                 return p_int
         return None
+
+    def update(self, dataIn):
+        self._data = dataIn
+        self._cols = self._data.columns 
+        self.r, self.c = shape(self._data) 
+
+    # Make the data editable
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
     
     
 # The TablePage Widget, this will be shown in the main window when pressed.    
@@ -66,7 +77,10 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     def initUI(self):      
         ### Dealing with the Tabs         
         self.myTabs = QTabWidget(self) # Creates the tab widget to hold the tabs
-        self.myTabs.setMinimumHeight(100)
+        self.myTabs.setTabShape(QTabWidget.TabShape(1000))
+        tabbar = self.myTabs.tabBar()
+        tabbar.setMovable(True)
+        
         self.myTabs.setStyleSheet(St.StyleSheets['Tab'])
         for name in act_nums:
             self.tabWidget =  QWidget() # Creating a widget to hold a single tab
@@ -91,17 +105,21 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             self.myTabs.addTab(self.tabWidget, str(name)) # Add this tab to myTabs
             self.createTable(dict_bank_data[name]) # Call the create table function to create a table
         ###
+            self.SearchBar = QLineEdit("Search...")
+            self.SearchBar.setFont(QFont(*St.Search_Bar_Font))
+            self.SearchBar.setStyleSheet(St.StyleSheets['Search'])
+            self.SearchBar.setHidden(True)
         
         ### Sorting out the Layout
-        Funcs.AllInOneLayout(self,[self.myTabs],VH='H') # Add the sidebar_frame and myTabs to the layout of the page horizontally.
+        Funcs.AllInOneLayout(self,[self.myTabs,self.SearchBar],VH='V',Stretches=[25,1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
         ###
         
         self.show() # show the entire app
-        
+    
     # This function creates the table using a TableView
     def createTable(self, data):
         self.Display_Data = data # Making a new dataframe to hold the data for display
-        self.Display_Data['Date'] = self.Display_Data['Date'].apply(dr.date2str) # Making the datetime more readable
+        #self.Display_Data['Date'] = self.Display_Data['Date'].apply(dr.date2str) # Making the datetime more readable
         self.model = PandasModel(self.Display_Data) # Create a model and fill it with data
         self.view.setModel(self.model)
         self.view.setShowGrid(St.Show_Table_Grid_Lines)
@@ -110,5 +128,29 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         self.view.resizeColumnsToContents() # Resize the column widths to fit the contents
         
         self.view.show()
-    
-    
+
+    # This function will set the focus on the search bar.
+    def search(self):
+        self.SearchBar.setHidden(False)
+        self.SearchBar.selectAll()
+        self.SearchBar.setFocus()  
+        
+    # Binds Cntrl+Enter to the Ok_Button
+    def keyPressEvent(self, e):
+        if e.modifiers() == Qt.ControlModifier:
+            if e.key() == Qt.Key_F:
+                self.search()
+        elif e.key() == Qt.Key_Return and self.SearchBar.hasFocus():
+            self.SearchBar.setHidden(True)
+            search_item = self.SearchBar.text()
+            self.setFocus()
+            tabbar = self.myTabs.tabBar()
+            Account_Number = int(tabbar.tabText(tabbar.currentIndex()))
+            if search_item.lower() == '' or search_item.lower() == 'all':
+                search_data = dict_bank_data[Account_Number]
+            else:
+                df = dict_bank_data[Account_Number]
+                mask = column_stack([df[col].apply(str).str.contains(search_item, na=False) for col in df])
+                search_data = df.loc[mask.any(axis=1)]
+            self.model.update(search_data)
+            print(search_data)
