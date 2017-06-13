@@ -11,6 +11,6 @@
 
 * Add an input feature to decide which plots to plot etc...
 
-* Add a feature to load files to the plotting page to do pre-programmed things.
+* Add a feature to save and load scripts into the plotting page... Like other data analysis software such as MATLAB etc?
 
 
