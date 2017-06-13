@@ -1,0 +1,28 @@
+<h2>Help Page</h2>
+<h3>Press any key to quit the help page.</h3>
+<p>
+   The minimum amount required to plot any graph is to set the ydata parameter. This can be set the same as any other parameter, by typing the parameter followed by a colon, and the list of plotting parameters ended with a semi-colon. An example is given below:
+   <center>
+      <code>parameter: item1, item2, ..., itemN ;</code>
+   </center>
+<br>
+   An example command to plot the Balance against the Date is given below:
+<blockquote>
+   <code>
+       ydata: Balance;
+       <br>
+       xdata: Date;
+   </code>
+</blockquote>
+White space is ignored, so is the case of the characters. Any line that begins with a '#' is ignored and can be used to comment.
+</p>
+<p>
+   The current list of parameters which can be set are given as follows:
+   <ul>
+      <li> Ydata -Sets the ydata to plot </li>
+      <li> Xdata -Sets the xdata to plot</li>
+      <li> Colour -Sets the colours of the plots</li>
+      <li> Linestyle (Ls) -Sets the linestyles of the plots.</li>
+   </ul>
+   The backend package used to plot the data is matplotlib so I have kept the syntax pretty similar to that.
+</p>

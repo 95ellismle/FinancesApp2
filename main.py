@@ -12,9 +12,6 @@ from Data import Data as dr
 
 error_messgs = [] # A list to store anything that goes wrong...
 
-
-
-
 ###
 
 ### Finding the Bank Statement Files and Paypal files
@@ -34,7 +31,7 @@ if len(paypal_filepaths):
 
 if len(bank_filepaths):
     names = dr.dict_parser(col_head_filepath)
-    
+
     ### Changing the names of the statement columns
     cols = bank_data.columns
     new_cols = dr.dict_value_search(list(cols),names)
@@ -69,13 +66,6 @@ if len(bank_filepaths):
         dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
         dict_bank_data[i] = dict_bank_data[i].drop_duplicates()
         dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
-
-x = """# This is how to control the plotting.\n
-# Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
-# A full rundown of the commands will be provided in the README.md file.\n
-# Feel free to delete all these comments (marked with a hash).
-\nYData:  Balance, Out;
-XData: default;"""
 
 
 from Gui import App

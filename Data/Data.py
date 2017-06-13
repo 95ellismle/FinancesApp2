@@ -53,13 +53,25 @@ def list_check(search_item, LIST):
 def date2str(time):
     return dt.datetime.strftime(time,'%d/%m/%Y')
 
+# Converts a string to an integer if possible and if it below a certain value
+def str2int(string):
+    try:
+        return int(string)
+    except:
+        return False
+
 # Convert a string to a float and ignore exceptions
-def str2float(i):
+def dataPrep(i):
     try:
         return float(i)
-    except:
-        return None
-
+    except ValueError:
+        try:
+            return pd.to_datetime(i,format='%d/%m/%Y')
+        except ValueError:
+            return None
+    except TypeError:
+        return i
+    
 # Converts the type of a column in a dataframe
 def convert_col(df,col,Type,error_msgs=[]):
     col = col.lower()

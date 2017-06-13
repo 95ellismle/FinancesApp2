@@ -24,12 +24,13 @@ class App(QWidget):
     
     def initUI(self):
         TableStackItem = Table.TablePage()
-        PlotStackItem = Plot.PlotPage()
+        PlotStackItem = Plot.App_Bit()
         SpecialStackItem = Special.SpecialPage()
         
         sidebar_frame = self.sideBar()
         
         self.FullStack = QStackedWidget(self)
+        
         self.FullStack.addWidget(TableStackItem)
         self.FullStack.addWidget(PlotStackItem)
         self.FullStack.addWidget(SpecialStackItem)

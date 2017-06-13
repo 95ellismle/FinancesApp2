@@ -6,7 +6,7 @@ table_background_colour = [250,250,250,255]
 Header_Font = ("Helvetica",16)
 Item_Font = ("SansSerif",14)
 Tab_Font = ("SansSerif",15)
-Show_Table_Grid_Lines = True
+Show_Table_Grid_Lines = False
 
 ###
 
@@ -149,6 +149,17 @@ StyleSheets['Text Frame'] = """.QPlainTextEdit
         }
 """
 
+StyleSheets['Help Frame'] = """.QLabel
+        {
+            background-color: white;
+            qproperty-alignment: AlignLeft;
+            color: black;
+            font-size: 14;
+            font-weight: normal;
+            border: 0;
+        }
+"""
+
 for i in range(number_of_buttons_on_sidebar):
     StyleSheets['Button'+str(i)] = """
         .QPushButton
@@ -156,7 +167,7 @@ for i in range(number_of_buttons_on_sidebar):
             background-color: %s;
             color: darkslategrey;
             font-size: 25px;
-            border: 0;
+            border-top: 1px solid black;
         }
         .QPushButton::hover
         {
