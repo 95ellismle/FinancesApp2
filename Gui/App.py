@@ -16,7 +16,7 @@ class App(QWidget):
         
         ### Setting the Colour of the app background
         p = self.palette()
-        b_col = QColor(*St.table_background_colour)
+        b_col = QColor(*St.background_colour)
         p.setColor(self.backgroundRole(), b_col)
         self.setPalette(p)   
         

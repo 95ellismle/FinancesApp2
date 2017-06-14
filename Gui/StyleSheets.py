@@ -2,17 +2,19 @@ from numpy import linspace
 
 ### Table Related Styles
 
-table_background_colour = [250,250,250,255]
 Header_Font = ("Helvetica",16)
-Item_Font = ("SansSerif",14)
-Tab_Font = ("SansSerif",15)
+Item_Font = ("Helvetica",14)
+Tab_Font = ("Helvetica",15)
 Show_Table_Grid_Lines = False
 Search_Bar_Font = ("Helvetica", 16)
+Search_Info_Font = ("Helvetica",14)
+Title_Font = ("Helvetica", 17)
 ###
 
 
 ### App Styles
 
+background_colour = [250,250,250,255]
 number_of_buttons_on_sidebar = 3
 sidebar_button_colour = '#f0f0ff'
 date_format = '%d/%m/%Y'
@@ -167,6 +169,15 @@ StyleSheets['Search'] = """.QLineEdit
             border: 0;
             font-weight: bold;
             font-size: 14;
+        }
+"""
+
+StyleSheets['Check Boxes'] = """.QCheckBox
+        {
+            color: black;
+            border: 0;
+            font-weight: light;
+            font-style: italic;
         }
 """
 

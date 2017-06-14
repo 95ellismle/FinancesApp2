@@ -195,7 +195,7 @@ def categoriser(item):
     elif Type == 'bgc':
         return 'Salary'
     elif Type == 'so':
-        return 'Rent, Bills and Fines'
+        return 'Rent, Bills & Fines'
     elif Type == 'tfr':
         return 'Transfer'
     elif Type == 'dep':

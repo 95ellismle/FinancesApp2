@@ -67,12 +67,13 @@ if len(bank_filepaths):
         dict_bank_data[i] = dict_bank_data[i][cols_ordered] # Re-Ordering the Columns
         dict_bank_data[i]['Description'] = dict_bank_data[i]['Description'].apply(dr.capital)
         dict_bank_data[i].index = range(len(dict_bank_data[i])) # Resorting the index
+
     
     for col in dict_bank_data[act_nums[0]].columns:
         if dict_bank_data[act_nums[0]][col].apply(dr.dataPrep).dtype != object:
             Plottable_cols.append(col)
 
-
+   
 
 from Gui import App
 import sys

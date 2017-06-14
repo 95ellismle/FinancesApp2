@@ -1,10 +1,17 @@
 # PyQt related imports
 from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex
-from PyQt5.QtWidgets import QAbstractScrollArea, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame
+from PyQt5.QtWidgets import QAbstractScrollArea, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack, array
+from numpy import shape, column_stack, arange
+from numpy.ma import masked_where, compressed
+from pandas import DataFrame
+
+# Matplotlib imports
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavBar
+from matplotlib.figure import Figure
 
 # Importing some required variables from the main code
 from __main__ import dict_bank_data, act_nums
@@ -75,15 +82,17 @@ class PandasModel(QAbstractTableModel):
                 return True
             return False
         
-    #=====================================================#
-    #INSERTING & REMOVING DATA
-    #=====================================================#
+    # A function to change the data displayed in the table.
     def updateData(self, dataIn ,parent = QModelIndex()):
-        self.beginInsertRows(parent, 0, len(dataIn))
-        self._data = dataIn.values  
-        self._cols = dataIn.columns
-        self.r, self.c = shape(self._data)
+        self.beginRemoveRows(parent, 0, self.r-1) # Remove previous data
+        self.endRemoveRows()
+        #
+        self._cols = dataIn.columns # update the table with the newly entered data.
+        self.r, self.c = shape(dataIn) # Reset the vital stats of the table
+        self.beginInsertRows(parent, 0, self.r-1) # insert the new data
+        self._data = dataIn.values
         self.endInsertRows()
+        
         
         return True
 
@@ -98,7 +107,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         
         ### Setting the Colour of the app background
         p = self.palette()
-        b_col = QColor(*St.table_background_colour)
+        b_col = QColor(*St.background_colour)
         p.setColor(self.backgroundRole(), b_col)
         self.setPalette(p)   
         ###
@@ -136,6 +145,9 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             self.myTabs.addTab(self.tabWidget, str(name)) # Add this tab to myTabs
             self.models[name] = self.createTable(dict_bank_data[name], self.views[name]) # Call the create table function to create a table
         ###
+        
+        self.tabbar = self.myTabs.tabBar()
+        
         self.SearchBar = Search()
         self.SearchBar.setHidden(True)
 
@@ -157,37 +169,62 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         return model
 
     # This function will set the focus on the search bar.
-    def search(self):
+    def searchOpen(self):
         self.SearchBar.setHidden(False)
         self.SearchBar.lineedit.selectAll()
         self.SearchBar.lineedit.setFocus()  
         
-    # Binds Cntrl+Enter to the Ok_Button
+    def SearchAndDisplay(self):
+        search_item = self.SearchBar.lineedit.text()
+        Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex()))
+        if search_item.lower() == '' or search_item.lower() == 'all':
+            search_data = dict_bank_data[Account_Number]
+        else:
+            df = dict_bank_data[Account_Number]
+            check_boxes = self.SearchBar.CheckBoxes.bxs
+            cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()]
+            mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols])
+            search_data = df.loc[mask.any(axis=1)]
+        xdata,ydata = self.dataPrep(search_data)
+        self.SearchBar.CatPlot.plot(ydata, xdata)
+        self.models[Account_Number].updateData(search_data)
+        self.SearchBar.SearchCountLabel.setText("Search Count = %s"%str(self.models[Account_Number].r))
+    
+    # Preps data for the bar plot of the categories
+    def dataPrep(self, data):
+        try:
+            data = data.loc[:,['Category','Out']]
+            data['Out'] = data['Out'].apply(dr.dataPrep)
+            data['Out'] = data['Out'].fillna(0)
+            data = data.groupby('Category').sum()
+            xdata = list(data.index)
+            ydata = data.values[:,0]
+            xdata = compressed(masked_where(ydata == 0, xdata))
+            ydata = compressed(masked_where(ydata == 0, ydata))
+            print(xdata,ydata)
+            return (xdata,ydata)
+        except KeyError:
+            pass
+    
+    # Binds events to key presses
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
-            if e.key() == Qt.Key_F:
-                self.search()
-            elif e.key() == Qt.Key_R:
-                print('bob')
-        elif e.key() == Qt.Key_Escape:
-            self.SearchBar.setHidden(True)
-            self.setFocus()
-        elif e.key() == Qt.Key_Return and self.SearchBar.lineedit.hasFocus():
-            self.SearchBar.setHidden(True)
-            search_item = self.SearchBar.lineedit.text()
-            tabbar = self.myTabs.tabBar()
-            Account_Number = int(tabbar.tabText(tabbar.currentIndex()))
-            if search_item.lower() == '' or search_item.lower() == 'all':
-                search_data = dict_bank_data[Account_Number]
-            else:
-                df = dict_bank_data[Account_Number]
-                mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in df])
-                search_data = df.loc[mask.any(axis=1)]
+            if e.key() == Qt.Key_F: # Open search with Cntrl-F
+                self.searchOpen()   
+                
+        if e.modifiers() == Qt.AltModifier: # Change between tabs with Alt-number
+            self.tabbar.setCurrentIndex(e.key()-49)
             
-            self.models[Account_Number].updateData(search_data)
+        if e.key() == Qt.Key_Escape: # Exit the Search with Esc
+            self.SearchBar.setHidden(True)
+            self.setFocus()
+            
+        elif e.key() == Qt.Key_Return or e.key() == Qt.Key_Enter and self.SearchBar.lineedit.hasFocus(): # Search for something with Enter
+            self.SearchAndDisplay()            
             self.setFocus()
 
 
+# The search bar frame
 class Search(QFrame):
     
     def __init__(self):
@@ -195,14 +232,76 @@ class Search(QFrame):
         self.initUI()
     
     def initUI(self):
+        self.Title = QLabel("Search Bar")
+        self.Title.setAlignment(Qt.AlignCenter)
+        self.Title.setFont(QFont(*St.Title_Font))
+        
         self.lineedit = QLineEdit("Search...")
         self.lineedit.setFont(QFont(*St.Search_Bar_Font))
         self.lineedit.setStyleSheet(St.StyleSheets['Search'])
         
-        Funcs.AllInOneLayout(self,[self.lineedit],VH='v',Align=Qt.AlignTop)
-        self.show()
-    
+        self.CheckBoxes = CheckBoxes()
+        
+        self.CatPlot = PlotCanvas([],[])
+        #self.CatPlot.setHidden(True)
+        
+        self.SearchCountLabel = QLabel("Search Count = ")  
+        self.SearchCountLabel.setFont(QFont(*St.Search_Info_Font))
+        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,10,10], Align=Qt.AlignTop)
 
+        self.show()
+        
+        
+
+# A frame to hold the CheckBoxes horizontally
+class CheckBoxes(QFrame):
     
+    def __init__(self):
+        super(CheckBoxes, self).__init__()
+        self.initUI()
+    
+    def initUI(self):
+        self.bxs = {}
+        for name in dict_bank_data[27274868].columns:
+            self.bxs[name] = QCheckBox(str(name), self)
+            self.bxs[name].setChecked(True)
+            self.bxs[name].setStyleSheet(St.StyleSheets['Check Boxes'])
+        
+        Funcs.AllInOneLayout(self,list(self.bxs.values()),VH='h',Align=Qt.AlignTop)
+        self.show()        
+    
+    
+class PlotCanvas(FigureCanvas):
+ 
+    def __init__(self,XData, YData, parent=None):
+        self.parent = parent
+        self.fig = self.make_figure()
+        self.ax = self.fig.add_subplot(111)
+        self.plot([],[])
+        
+    def plot(self, ydata, xlabels):
+        error = False
+        self.ax.cla()
+        ind = arange(len(ydata))  # the x locations for the groups
+        width = 0.05       # the width of the bars
+        self.ax.bar(range(len(ydata)),ydata)
+        self.ax.set_xticks(ind + width / 2)
+        self.ax.set_xticklabels(xlabels, rotation='vertical')
+        self.draw()
+        self.ax.tick_params(labelsize=7)
+        self.ax.set_ylabel("Count", fontsize=7)
+        self.ax.set_xlabel("Category", fontsize=7)
+        
+        return error
+
             
-    
+    def make_figure(self):
+        fig = Figure(facecolor='white')
+        fig.subplots_adjust(0.1,0.25,0.95,0.95)
+        self.axes = fig.add_subplot(111)
+ 
+        FigureCanvas.__init__(self, fig)
+        self.setParent(self.parent)
+ 
+        FigureCanvas.updateGeometry(self)
+        return fig
