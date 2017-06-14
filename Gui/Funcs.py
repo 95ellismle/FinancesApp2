@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 # Align decideds the alignment of the layout, the Margins decide the margins and spacing decides the spacing between widgets.
 # VH decides whether the widgets are aligned vertically or horizontally. Object is the parent widget, widgets are the children.
 # Stretches must be a list and decides how big the widget is compared to its siblings.
-def AllInOneLayout(Parent,children,Stretches=[1], VH='V',Align=False, Margins=[0,0,0,0], Spacing=0):
+def AllInOneLayout(Parent,children,Stretches=[1], VH='V', Align=False, Margins=[0,0,0,0], Spacing=0):
     if VH.lower() == "v":
         layout = QVBoxLayout()
     elif VH.lower() == 'h':

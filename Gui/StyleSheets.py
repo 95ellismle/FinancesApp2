@@ -15,6 +15,7 @@ Search_Bar_Font = ("Helvetica", 16)
 
 number_of_buttons_on_sidebar = 3
 sidebar_button_colour = '#f0f0ff'
+date_format = '%d/%m/%Y'
 
 ###
 
@@ -47,7 +48,6 @@ StyleSheets['Table']  = """
         }
         QHeaderView::section
         {
-            border: 0px solid black;
             background-color: #ebebeb;
             color: black;
             height: 50px;

@@ -3,6 +3,7 @@ import os
 from __main__ import categories_filename
 import datetime as dt
 import string as string_lib
+from Gui import StyleSheets as St
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
@@ -47,12 +48,17 @@ def list_check(search_item, LIST):
         if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
             return (True,list_item)
     return False
-
-
+# Returns a lowercase string
+def lower(i):
+    try:
+        return i.lower()
+    except TypeError:
+        None
+        
 # Converts a datetime to a string for displaying the dataframe data
 def TablePrep(item):
     try:
-        return dt.datetime.strftime(item,'%d/%m/%Y')
+        return dt.datetime.strftime(item,St.date_format)
     except TypeError:
         try:
             return str(item)
@@ -72,7 +78,7 @@ def dataPrep(i):
         return float(i)
     except ValueError:
         try:
-            return pd.to_datetime(i,format='%d/%m/%Y')
+            return pd.to_datetime(i,format=St.date_format)
         except ValueError:
             return None
     except TypeError:
@@ -85,7 +91,7 @@ def convert_col(df,col,Type,error_msgs=[]):
     try:
         if type(Type) == str:
             if 'date' in Type.lower() or 'time' in Type.lower():
-                df[col] = pd.to_datetime(df[col],format='%d/%m/%Y')  
+                df[col] = pd.to_datetime(df[col],format=St.date_format)  
         else:
             df[col] = df[col].apply(Type)
     except KeyError as e:

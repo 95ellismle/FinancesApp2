@@ -1,11 +1,10 @@
 # PyQt related imports
-from PyQt5.QtCore import QAbstractTableModel, Qt
-from PyQt5.QtWidgets import QAbstractScrollArea, QTabBar, QTableView, QWidget, QTabWidget, QHeaderView, QInputDialog, QLineEdit
-from PyQt5.QtGui import QFont, QColor, QStandardItem
+from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex
+from PyQt5.QtWidgets import QAbstractScrollArea, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame
+from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack
-import pandas as pd
+from numpy import shape, column_stack, array
 
 # Importing some required variables from the main code
 from __main__ import dict_bank_data, act_nums
@@ -28,38 +27,69 @@ class PandasModel(QAbstractTableModel):
         self.r, self.c = shape(self._data)  # Finds the dimensions of the dataframe
      
     ### rowCount, columnCount and data are all necessary functions to call when using the QAbstractTableModel.
-    def rowCount(self, parent=None): 
+    def rowCount(self, parent=None): #Controls the amount of rows in the tableview
         return self.r
     
-    def columnCount(self, parent=None):
+    def columnCount(self, parent=None): #Controls the amount of columns
         return self.c
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role):
         if index.isValid():
+            if role == Qt.EditRole:
+                return self._data[index.row(),index.column()]
+                
+            if role == Qt.ToolTipRole:
+                column = index.column()
+                row = index.row()
+                return "Row: %s, Column: %s" %(str(row),str(self._cols[column]))
+                
             if role == Qt.DisplayRole:
                 return dr.TablePrep(self._data[index.row(),index.column()])
+
         return None
     ###
 
-    # Well behaved models also implement headerData (taken from http://pyqt.sourceforge.net/Docs/PyQt4/qabstracttablemodel.html)
+    # This modifies the headerData, Qt.Horizontal will edit the horizontal headers, Vertical ones will be row headers.
+    # p_int is the header index
     def headerData(self, p_int, orientation, role):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 return str(self._cols[p_int])
             elif orientation == Qt.Vertical:
-                return p_int
+                return "Item "+str(p_int)
         return None
-
-    def update(self, dataIn):
-        self._data = dataIn
-        self._cols = self._data.columns 
-        self.r, self.c = shape(self._data) 
 
     # Make the data editable
     def flags(self, index):
-        return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
+        if not index.isValid():
+            return Qt.ItemIsEnabled
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)| Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+      
+    # This will modify the data in the table if it is changed in the table
+    def setData(self, index, value, role=Qt.EditRole):
+        if role == Qt.EditRole: 
+            row = index.row()
+            col = index.column()
+            if type(value) == str:
+                self._data[row,col] = value # Set the data to the newly typed value
+                return True
+            return False
+        
+    #=====================================================#
+    #INSERTING & REMOVING DATA
+    #=====================================================#
+    def updateData(self, dataIn ,parent = QModelIndex()):
+        self.beginInsertRows(parent, 0, len(dataIn))
+        self._data = dataIn.values  
+        self._cols = dataIn.columns
+        self.r, self.c = shape(self._data)
+        self.endInsertRows()
+        
+        return True
+
+
     
-    
+        
 # The TablePage Widget, this will be shown in the main window when pressed.    
 class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     def __init__(self, parent=None):
@@ -80,77 +110,99 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         self.myTabs.setTabShape(QTabWidget.TabShape(1000))
         tabbar = self.myTabs.tabBar()
         tabbar.setMovable(True)
-        
+        self.views = {}
+        self.models = {}
         self.myTabs.setStyleSheet(St.StyleSheets['Tab'])
         for name in act_nums:
             self.tabWidget =  QWidget() # Creating a widget to hold a single tab
-            self.view = QTableView(self) # Creating a table view to eventually put a pandas dataframe in
-            self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+            self.views[name] = QTableView(self) # Creating a table view to eventually put a pandas dataframe in
+            self.views[name].setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
             self.tabWidget.setStyleSheet(St.StyleSheets['Tab'])
-            self.view.setStyleSheet(St.StyleSheets['Table'])
+            self.views[name].setStyleSheet(St.StyleSheets['Table'])
             ### Change the header fonts
             Hfont = QFont(*St.Header_Font)
-            self.headers = self.view.horizontalHeader()
+            self.headers = self.views[name].horizontalHeader()
             self.headers.setDefaultAlignment(Qt.AlignLeft|Qt.AlignVCenter)
             self.headers.setFont(Hfont)
             
             Ifont = QFont(*St.Item_Font)
-            self.view.setFont(Ifont)
+            self.views[name].setFont(Ifont)
             ###
-            Funcs.AllInOneLayout(self.tabWidget,[self.view]) # add the self.view object to the self.tabWidget object's layout
+            Funcs.AllInOneLayout(self.tabWidget,[self.views[name]]) # add the self.view object to the self.tabWidget object's layout
             
             Tfont = QFont(*St.Tab_Font)
             self.myTabs.setFont(Tfont)
-            self.view.setAlternatingRowColors(True);
+            self.views[name].setAlternatingRowColors(True);
             self.myTabs.addTab(self.tabWidget, str(name)) # Add this tab to myTabs
-            self.createTable(dict_bank_data[name]) # Call the create table function to create a table
+            self.models[name] = self.createTable(dict_bank_data[name], self.views[name]) # Call the create table function to create a table
         ###
-            self.SearchBar = QLineEdit("Search...")
-            self.SearchBar.setFont(QFont(*St.Search_Bar_Font))
-            self.SearchBar.setStyleSheet(St.StyleSheets['Search'])
-            self.SearchBar.setHidden(True)
-        
+        self.SearchBar = Search()
+        self.SearchBar.setHidden(True)
+
         ### Sorting out the Layout
-        Funcs.AllInOneLayout(self,[self.myTabs,self.SearchBar],VH='V',Stretches=[25,1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
+        Funcs.AllInOneLayout(self,[self.myTabs,self.SearchBar],VH='h',Stretches=[4,1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
         ###
         
         self.show() # show the entire app
     
     # This function creates the table using a TableView
-    def createTable(self, data):
-        self.Display_Data = data # Making a new dataframe to hold the data for display
-        #self.Display_Data['Date'] = self.Display_Data['Date'].apply(dr.date2str) # Making the datetime more readable
-        self.model = PandasModel(self.Display_Data) # Create a model and fill it with data
-        self.view.setModel(self.model)
-        self.view.setShowGrid(St.Show_Table_Grid_Lines)
+    def createTable(self, data, view):
+        model = PandasModel(data) # Create a model and fill it with data
+        view.setModel(model)
+        view.setShowGrid(St.Show_Table_Grid_Lines)
         for i in range(1,len(dict_bank_data[act_nums[0]].columns)):
                 self.headers.setSectionResizeMode(int(i),QHeaderView.Stretch)  
-        self.view.resizeColumnsToContents() # Resize the column widths to fit the contents
-        
-        self.view.show()
+        view.resizeColumnsToContents() # Resize the column widths to fit the contents
+        view.show()
+        return model
 
     # This function will set the focus on the search bar.
     def search(self):
         self.SearchBar.setHidden(False)
-        self.SearchBar.selectAll()
-        self.SearchBar.setFocus()  
+        self.SearchBar.lineedit.selectAll()
+        self.SearchBar.lineedit.setFocus()  
         
     # Binds Cntrl+Enter to the Ok_Button
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
             if e.key() == Qt.Key_F:
                 self.search()
-        elif e.key() == Qt.Key_Return and self.SearchBar.hasFocus():
+            elif e.key() == Qt.Key_R:
+                print('bob')
+        elif e.key() == Qt.Key_Escape:
             self.SearchBar.setHidden(True)
-            search_item = self.SearchBar.text()
             self.setFocus()
+        elif e.key() == Qt.Key_Return and self.SearchBar.lineedit.hasFocus():
+            self.SearchBar.setHidden(True)
+            search_item = self.SearchBar.lineedit.text()
             tabbar = self.myTabs.tabBar()
             Account_Number = int(tabbar.tabText(tabbar.currentIndex()))
             if search_item.lower() == '' or search_item.lower() == 'all':
                 search_data = dict_bank_data[Account_Number]
             else:
                 df = dict_bank_data[Account_Number]
-                mask = column_stack([df[col].apply(str).str.contains(search_item, na=False) for col in df])
+                mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in df])
                 search_data = df.loc[mask.any(axis=1)]
-            self.model.update(search_data)
-            print(search_data)
+            
+            self.models[Account_Number].updateData(search_data)
+            self.setFocus()
+
+
+class Search(QFrame):
+    
+    def __init__(self):
+        super(Search, self).__init__()
+        self.initUI()
+    
+    def initUI(self):
+        self.lineedit = QLineEdit("Search...")
+        self.lineedit.setFont(QFont(*St.Search_Bar_Font))
+        self.lineedit.setStyleSheet(St.StyleSheets['Search'])
+        
+        Funcs.AllInOneLayout(self,[self.lineedit],VH='v',Align=Qt.AlignTop)
+        self.show()
+    
+
+    
+            
+    
