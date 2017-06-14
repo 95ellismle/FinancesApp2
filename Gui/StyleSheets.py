@@ -1,30 +1,31 @@
 from numpy import linspace
 
 ### Table Related Styles
-
-Header_Font = ("Helvetica",16)
-Item_Font = ("Helvetica",14)
-Tab_Font = ("Helvetica",15)
+font = "Helvetica [Cronyx]"
+Header_Font = (font,16)
+Item_Font = (font,14)
+Tab_Font = (font,15)
 Show_Table_Grid_Lines = False
-Search_Bar_Font = ("Helvetica", 16)
-Search_Info_Font = ("Helvetica",14)
-Title_Font = ("Helvetica", 17)
+Search_Bar_Font = (font, 16)
+Search_Info_Font = (font,14)
+Title_Font = (font, 17)
+
 ###
 
 
 ### App Styles
 
-background_colour = [250,250,250,255]
+background_colour = [255, 255, 255, 255]
 number_of_buttons_on_sidebar = 3
 sidebar_button_colour = '#f0f0ff'
 date_format = '%d/%m/%Y'
 
-###
+###rgba(251, 251, 251, 1)
 
 
 ### Plotting Page Styles
 
-Command_Font = ("Helvetica",16)
+Command_Font = (font,16)
 
 ###
 
@@ -50,7 +51,8 @@ StyleSheets['Table']  = """
         }
         QHeaderView::section
         {
-            background-color: #ebebeb;
+            background-color: white;
+            border: 0;
             color: black;
             height: 50px;
             text-align: right;
@@ -83,7 +85,7 @@ StyleSheets['Table']  = """
 StyleSheets['Tab'] = """ 
         QTabBar::tab 
         {
-                background-color: #f2f2f2;  
+                background-color: lightgrey;  
                 gridline-color: none;
         }
         QTabWidget::pane 
@@ -91,9 +93,9 @@ StyleSheets['Tab'] = """
                 border: 0; 
                 background-color: white;
         }
-        QTabBar::tab::focus
+        QTabBar::tab::selected
         {
-                background-color: lightgrey; 
+                background-color: white; 
                 font-weight: bold;
         }
         QTabBar::tab::hover
@@ -102,7 +104,7 @@ StyleSheets['Tab'] = """
                 font-weight: bold;
                 color: darkslategrey;
         }
-        QTabBar::tab::focus::hover
+        QTabBar::tab::selected::hover
         {
                 background-color: grey;
                 font-weight: bold;
@@ -120,6 +122,24 @@ StyleSheets['Ok Button'] = """.QPushButton
         {
             background-color: green;
             color: white;
+            font-size: 14;
+            font-weight: bold;
+            border: 0;
+        }
+        .QPushButton::hover
+        {
+            background-color: lightgreen;
+            color: black;
+            font-size: 15;
+            font-weight: 900;
+            border: 0;
+        }
+"""
+
+StyleSheets['Date Buttons'] = """.QPushButton
+        {
+            background-color: white;
+            color: black;
             font-size: 14;
             font-weight: bold;
             border: 0;
@@ -164,7 +184,7 @@ StyleSheets['Help Frame'] = """.QLabel
 
 StyleSheets['Search'] = """.QLineEdit
         {
-            background-color: #ddddff;
+            background-color: #dfdfff;
             color: #333300;
             border: 0;
             font-weight: bold;

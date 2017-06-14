@@ -53,7 +53,7 @@ def lower(i):
     try:
         return i.lower()
     except TypeError:
-        None
+        print(i)
         
 # Converts a datetime to a string for displaying the dataframe data
 def TablePrep(item):

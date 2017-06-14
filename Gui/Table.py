@@ -1,16 +1,16 @@
+#!/usr/bin/python3
+
 # PyQt related imports
-from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex
-from PyQt5.QtWidgets import QAbstractScrollArea, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox
+from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
+from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
 from numpy import shape, column_stack, arange
 from numpy.ma import masked_where, compressed
-from pandas import DataFrame
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavBar
 from matplotlib.figure import Figure
 
 # Importing some required variables from the main code
@@ -42,16 +42,24 @@ class PandasModel(QAbstractTableModel):
 
     def data(self, index, role):
         if index.isValid():
-            if role == Qt.EditRole:
+            if role == Qt.EditRole: # Make the data editable
                 return self._data[index.row(),index.column()]
                 
-            if role == Qt.ToolTipRole:
+            if role == Qt.ToolTipRole: # Shows some data when hovering over the items
                 column = index.column()
                 row = index.row()
                 return "Row: %s, Column: %s" %(str(row),str(self._cols[column]))
                 
-            if role == Qt.DisplayRole:
+            if role == Qt.DisplayRole: # Displays the data
                 return dr.TablePrep(self._data[index.row(),index.column()])
+            
+            if role == Qt.TextColorRole:
+                colind = index.column()
+                col = self._cols[colind]
+                row = index.row()
+                if col == 'Balance' and float(self._data[row,colind]) < 0:
+                    return QVariant(QColor('#ff0000')) 
+                      
 
         return None
     ###
@@ -147,7 +155,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         ###
         
         self.tabbar = self.myTabs.tabBar()
-        
+                
         self.SearchBar = Search()
         self.SearchBar.setHidden(True)
 
@@ -185,27 +193,11 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()]
             mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols])
             search_data = df.loc[mask.any(axis=1)]
-        xdata,ydata = self.dataPrep(search_data)
-        self.SearchBar.CatPlot.plot(ydata, xdata)
+        xdata,ydata = self.SearchBar.dataPrep(search_data)
+        self.SearchBar.CatPlot.plot(xdata, ydata)
         self.models[Account_Number].updateData(search_data)
         self.SearchBar.SearchCountLabel.setText("Search Count = %s"%str(self.models[Account_Number].r))
-    
-    # Preps data for the bar plot of the categories
-    def dataPrep(self, data):
-        try:
-            data = data.loc[:,['Category','Out']]
-            data['Out'] = data['Out'].apply(dr.dataPrep)
-            data['Out'] = data['Out'].fillna(0)
-            data = data.groupby('Category').sum()
-            xdata = list(data.index)
-            ydata = data.values[:,0]
-            xdata = compressed(masked_where(ydata == 0, xdata))
-            ydata = compressed(masked_where(ydata == 0, ydata))
-            print(xdata,ydata)
-            return (xdata,ydata)
-        except KeyError:
-            pass
-    
+        
     # Binds events to key presses
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
@@ -243,14 +235,62 @@ class Search(QFrame):
         self.CheckBoxes = CheckBoxes()
         
         self.CatPlot = PlotCanvas([],[])
-        #self.CatPlot.setHidden(True)
+        xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
+        self.CatPlot.plot(xdata, ydata)
         
+        self.ButtonFrame = DateButtons()
+        self.ButtonFrame.Date1Button.clicked.connect(self.onButtonClick)
+        self.ButtonFrame.Date2Button.clicked.connect(self.onButtonClick)
+        
+        self.calender = QCalendarWidget(self)
+        self.calender.setHidden(True)
+        self.calender.clicked.connect(self.closeCalender)
+                
         self.SearchCountLabel = QLabel("Search Count = ")  
         self.SearchCountLabel.setFont(QFont(*St.Search_Info_Font))
-        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,10,10], Align=Qt.AlignTop)
+        
+        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.calender, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,10,12], Align=Qt.AlignTop)
 
         self.show()
+    
+    def onButtonClick(self):
+        self.calender.setHidden(False)
+    
+    def closeCalender(self):
         
+        self.calender.setHidden(True)
+        
+    # Preps data for the bar plot of the categories
+    def dataPrep(self, data):
+        try:
+            data = data.loc[:,['Category','Out']]
+            data['Out'] = data['Out'].apply(dr.dataPrep)
+            data['Out'] = data['Out'].fillna(0)
+            data = data.groupby('Category').sum()
+            xdata = list(data.index)
+            ydata = data.values[:,0]
+            xdata = compressed(masked_where(ydata == 0, xdata))
+            ydata = compressed(masked_where(ydata == 0, ydata))
+            return (xdata,ydata)
+        except KeyError:
+            pass
+        
+class DateButtons(QFrame):
+    def __init__(self):
+        super(DateButtons, self).__init__()
+        self.initUI()
+    
+    def initUI(self):
+        self.Date1Button = QPushButton("Date 1")
+        self.Date2Button = QPushButton("Date 2")
+        self.Date1Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.Date2Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.Date1Button.setStyleSheet(St.StyleSheets['Date Buttons'])
+        self.Date2Button.setStyleSheet(St.StyleSheets['Date Buttons'])
+
+        Funcs.AllInOneLayout(self, [self.Date1Button, self.Date2Button], VH='h')
+        
+        self.show()
         
 
 # A frame to hold the CheckBoxes horizontally
@@ -279,7 +319,7 @@ class PlotCanvas(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
         self.plot([],[])
         
-    def plot(self, ydata, xlabels):
+    def plot(self, xlabels, ydata):
         error = False
         self.ax.cla()
         ind = arange(len(ydata))  # the x locations for the groups
@@ -289,7 +329,7 @@ class PlotCanvas(FigureCanvas):
         self.ax.set_xticklabels(xlabels, rotation='vertical')
         self.draw()
         self.ax.tick_params(labelsize=7)
-        self.ax.set_ylabel("Count", fontsize=7)
+        self.ax.set_ylabel("Money Out / £", fontsize=7)
         self.ax.set_xlabel("Category", fontsize=7)
         
         return error
@@ -297,7 +337,7 @@ class PlotCanvas(FigureCanvas):
             
     def make_figure(self):
         fig = Figure(facecolor='white')
-        fig.subplots_adjust(0.1,0.25,0.95,0.95)
+        fig.subplots_adjust(0.13,0.25,0.95,0.98)
         self.axes = fig.add_subplot(111)
  
         FigureCanvas.__init__(self, fig)

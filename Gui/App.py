@@ -23,17 +23,17 @@ class App(QWidget):
         self.initUI()
     
     def initUI(self):
-        TableStackItem = Table.TablePage()
-        PlotStackItem = Plot.App_Bit()
-        SpecialStackItem = Special.SpecialPage()
+        self.TableStackItem = Table.TablePage()
+        self.PlotStackItem = Plot.App_Bit()
+        self.SpecialStackItem = Special.SpecialPage()
         
         sidebar_frame = self.sideBar()
         
         self.FullStack = QStackedWidget(self)
         
-        self.FullStack.addWidget(TableStackItem)
-        self.FullStack.addWidget(PlotStackItem)
-        self.FullStack.addWidget(SpecialStackItem)
+        self.FullStack.addWidget(self.TableStackItem)
+        self.FullStack.addWidget(self.PlotStackItem)
+        self.FullStack.addWidget(self.SpecialStackItem)
         
         Funcs.AllInOneLayout(self,[sidebar_frame,self.FullStack],Stretches=[1,10],VH="H")
         
@@ -62,10 +62,14 @@ class App(QWidget):
     
     # These buttons change which widget we can see in the stacked widget
     def tabButton(self):
+        self.TableStackItem.setFocus()
         self.FullStack.setCurrentIndex(0)
 
+
     def plotButton(self):
+        self.PlotStackItem.setFocus()
         self.FullStack.setCurrentIndex(1)
     
     def specialButton(self):
+        self.SpecialStackItem.setFocus()
         self.FullStack.setCurrentIndex(2)

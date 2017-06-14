@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt5.QtGui import QLinearGradient, QColor, QBrush
 
 
 # A function to place objects in a layout.

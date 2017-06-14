@@ -39,6 +39,14 @@ class App_Bit(QWidget):
                 
         AllInOneLayout(self,self.FullStack)
         self.show()
+    
+    # Binds Cntrl+Enter to the Ok_Button
+    def keyPressEvent(self, e):
+        if e.modifiers() == Qt.ControlModifier:
+            if e.key() == Qt.Key_H:
+                self.FullStack.setCurrentIndex(1)
+        elif e.key():
+            self.FullStack.setCurrentIndex(0)
            
         
 class PlotPage(QWidget):
@@ -207,6 +215,12 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
         fig.subplots_adjust(0.07,0.05,0.97,0.95)
         return fig
+
+    # Binds Cntrl+Enter to the Ok_Button
+    def keyPressEvent(self, e):
+        if e.modifiers() == Qt.ControlModifier:
+            if e.key() == Qt.Key_H:
+                self.parent().parent().parent().FullStack.setCurrentIndex(1)
     
 
 class HelpPage(QWidget):
@@ -217,7 +231,7 @@ class HelpPage(QWidget):
     
     def initUI(self):    
         # The graph widgets
-        f = open('./Gui/Help Page/Help_Page.html','r')
+        f = open('./Gui/html/Help_Page.html','r')
         help_page_html = f.read()
         f.close()
         self.Help_Box = QTextEdit()
