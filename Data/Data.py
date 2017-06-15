@@ -87,6 +87,13 @@ def str2int(string):
     except:
         return False
 
+# converts a string to a float
+def str2float(i):
+    try:
+        return float(i)
+    except:
+        return None
+
 # Convert a string to a float and ignore exceptions
 def dataPrep(i):
     try:
@@ -309,10 +316,13 @@ def Data_Read(filepath):
     
     if len(datafilepaths):
         ### Sorting data from different bank accounts
+        DATA = DATA.drop_duplicates()
         DATA['Description'] = DATA['Description'].apply(up)
         DATA = DATA.fillna('')
         DATA['Description'] = DATA['Description'].apply(unclutter)
-        act_nums = list(set(list(DATA['Acc Num']))) # Finding the unique account numbers
+        DATA = DATA.sort_values('Date', 0, ascending=False)
+        act_nums = DATA['Acc Num'].unique() # Finding the account numbers
+        act_nums = list(reversed(list(act_nums)))
         dict_DATA = {i:DATA.loc[DATA['Acc Num'] == i] for i in act_nums} # Storing each account as a separate dictionary entry
         for i in dict_DATA: # Deleting the account numbers in the dataframes
             dict_DATA[i] = dict_DATA[i].drop([col for col in DATA.columns if 'Acc' in col], axis=1)
@@ -320,13 +330,12 @@ def Data_Read(filepath):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
-            dict_DATA[i] = dict_DATA[i].drop_duplicates()
+            
             dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Type'].apply(str)+';'+ dict_DATA[i].loc[:,'Description'].apply(str)+';'+dict_DATA[i].loc[:,'Balance'].apply(str)+';'+dict_DATA[i].loc[:,'In'].apply(str)+';'+dict_DATA[i].loc[:,'Out'].apply(str)+';'+ dict_DATA[i].loc[:,'Date'].apply(str)
             dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Category'].apply(categoriser)
             dict_DATA[i] = dict_DATA[i].sort_values(by='Date', ascending=False)
             dict_DATA[i] = dict_DATA[i][cols_ordered] # Re-Ordering the Columns
             dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(capital)
-            dict_DATA[i] = dict_DATA[i].sort_values('Date', 0, ascending=False)
             dict_DATA[i].index = range(len(dict_DATA[i])) # Resorting the index
     
         

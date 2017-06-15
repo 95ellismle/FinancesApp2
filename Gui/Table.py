@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 # PyQt related imports
-from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
-from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton, QStringListModel, QCompleter
+from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant, QStringListModel
+from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton, QCompleter
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack, arange
+from numpy import shape, column_stack, arange, around
 from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
 
@@ -21,6 +21,7 @@ from Gui import Funcs
 import Gui.StyleSheets as St
 
 
+test_list = ['Bob','Aarav','Afia','Jane']
 act_nums = list(dict_bank_data.keys())
 # This is some code taken from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
 # I found the tableWidget was flagging in terms of performance for even smallish datasets (1,000+).
@@ -46,12 +47,7 @@ class PandasModel(QAbstractTableModel):
     def data(self, index, role):
         if index.isValid():
             if role == Qt.EditRole: # Make the data editable
-                return self._data[index.row(),index.column()]
-                
-            if role == Qt.ToolTipRole: # Shows some data when hovering over the items
-                column = index.column()
-                row = index.row()
-                return "Row: %s, Column: %s" %(str(row),str(self._cols[column]))
+                return dr.TablePrep(self._data[index.row(),index.column()])
                 
             if role == Qt.DisplayRole: # Displays the data
                 return dr.TablePrep(self._data[index.row(),index.column()])
@@ -89,7 +85,7 @@ class PandasModel(QAbstractTableModel):
             row = index.row()
             col = index.column()
             if type(value) == str:
-                self._data[row,col] = value # Set the data to the newly typed value
+                self._data[row,col] = dr.TablePrep(value) # Set the data to the newly typed value
                 return True
             return False
         
@@ -184,24 +180,47 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         self.SearchBar.setHidden(False)
         self.SearchBar.lineedit.selectAll()
         self.SearchBar.lineedit.setFocus()  
-        
+    
+    # A function to search the data and display the required items
     def SearchAndDisplay(self):
-        search_item = self.SearchBar.lineedit.text()
-        Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex()))
+        search_item = self.SearchBar.lineedit.text() #grab the search text
+        Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
         if search_item.lower() == '' or search_item.lower() == 'all' or search_item == "Search...":
-            print('bob')
-            search_data = dict_bank_data[Account_Number]
+            search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
+            search_data = self.DateSplice(search_data,self.SearchBar.date1,self.SearchBar.date2)
         else:
-            df = dict_bank_data[Account_Number]
-            check_boxes = self.SearchBar.CheckBoxes.bxs
-            cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()]
-            mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols])
-            search_data = df.loc[mask.any(axis=1)]
-        search_data = self.DateSplice(search_data,self.SearchBar.date1,self.SearchBar.date2)
-        xdata,ydata = self.SearchBar.dataPrep(search_data)
-        self.SearchBar.CatPlot.plot(xdata, ydata)
+            df = dict_bank_data[Account_Number] # find the data that corresponds to the tab currently selected
+            df = self.DateSplice(df,self.SearchBar.date1,self.SearchBar.date2)
+            check_boxes = self.SearchBar.CheckBoxes.bxs 
+            cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
+            mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
+            search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
+        
+        self.plotCategories(search_data) # Plots a little bar chart of the categorised data
         self.models[Account_Number].updateData(search_data)
-        self.SearchBar.SearchCountLabel.setText("Search Count = %s"%str(self.models[Account_Number].r))
+        
+        self.SearchBar.SearchCountLabel.setText("Total Spend = £%s\nSearch Count = %s\nAvg Per Item= £%s\nDaily Avg = £%s"%(self.statFinder(search_data)))
+    
+    # Finds averages and sums
+    def statFinder(self, data):
+        total_spend = data['Out'].apply(dr.str2float).sum()
+        item_count  = len(data)
+        if item_count > 0:
+            item_avg   = format(total_spend/item_count,",.2f")
+            first_date = min(data['Date'])
+            second_date = max(data['Date'])
+            time_delta = second_date-first_date
+            daily_avg = format(total_spend/time_delta.days,",.2f")
+        else:
+            item_avg = '-'
+            daily_avg = '-'
+        total_spend = format(total_spend, ",.0f")
+        return str(total_spend), format(item_count,',d'), str(item_avg), str(daily_avg)
+    
+    # Plot the categories in a bar chart
+    def plotCategories(self, data):
+        xdata,ydata = self.SearchBar.dataPrep(data)
+        self.SearchBar.CatPlot.plot(xdata, ydata)
         
     #Will splice data between 2 given dates.
     def DateSplice(self, data, date1, date2):
@@ -247,7 +266,7 @@ class Search(QFrame):
         self.lineedit = QLineEdit("Search...")
         self.lineedit.setFont(QFont(*St.Search_Bar_Font))
         self.lineedit.setStyleSheet(St.StyleSheets['Search'])
-        
+                
         self.CheckBoxes = CheckBoxes()
                
         self.ButtonFrame = DateButtons()
@@ -261,8 +280,8 @@ class Search(QFrame):
         self.calender = QCalendarWidget(self)
         self.calender.setHidden(True)
         self.calender.clicked.connect(self.closeCalender)
-                
-        self.SearchCountLabel = QLabel("Search Count = ")  
+        
+        self.SearchCountLabel = QLabel("Total Spend = \nSearch Count = \nAverage Spend\nDaily Avg = ")  
         self.SearchCountLabel.setFont(QFont(*St.Search_Info_Font))
 
         self.CatPlot = PlotCanvas([],[])
