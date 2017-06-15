@@ -13,11 +13,12 @@ from matplotlib.figure import Figure
 from numpy import array
 
 # Imports from other modules
-from __main__ import dict_bank_data, act_nums, Plottable_cols
+from __main__ import dict_DATA as dict_bank_data
+from __main__ import Plottable_cols
 from Data import Data as dr
 from Gui.Funcs import AllInOneLayout, dict_value_get
 from Gui import StyleSheets as St
-
+act_nums = list(dict_bank_data.keys())
 Plot_Mesg = """# This is how to control the plotting.\n
 # Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
 # For Help simply type press Cntrl-H (you may need to click this textbox).

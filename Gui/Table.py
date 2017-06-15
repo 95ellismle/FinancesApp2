@@ -2,23 +2,26 @@
 
 # PyQt related imports
 from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
-from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton
+from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton, QStringListModel, QCompleter
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
 from numpy import shape, column_stack, arange
 from numpy.ma import masked_where, compressed
+from datetime import datetime as dt
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 # Importing some required variables from the main code
-from __main__ import dict_bank_data, act_nums
+from __main__ import dict_DATA as dict_bank_data
 from Data import Data as dr
 from Gui import Funcs
 import Gui.StyleSheets as St
 
+
+act_nums = list(dict_bank_data.keys())
 # This is some code taken from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
 # I found the tableWidget was flagging in terms of performance for even smallish datasets (1,000+).
 # This QAbstractTableModel seems to perform much better when populating a tableView with a pandas dataframe.
@@ -115,7 +118,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         
         ### Setting the Colour of the app background
         p = self.palette()
-        b_col = QColor(*St.background_colour)
+        b_col = QColor(St.background_colour)
         p.setColor(self.backgroundRole(), b_col)
         self.setPalette(p)   
         ###
@@ -185,7 +188,8 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     def SearchAndDisplay(self):
         search_item = self.SearchBar.lineedit.text()
         Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex()))
-        if search_item.lower() == '' or search_item.lower() == 'all':
+        if search_item.lower() == '' or search_item.lower() == 'all' or search_item == "Search...":
+            print('bob')
             search_data = dict_bank_data[Account_Number]
         else:
             df = dict_bank_data[Account_Number]
@@ -193,11 +197,18 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()]
             mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols])
             search_data = df.loc[mask.any(axis=1)]
+        search_data = self.DateSplice(search_data,self.SearchBar.date1,self.SearchBar.date2)
         xdata,ydata = self.SearchBar.dataPrep(search_data)
         self.SearchBar.CatPlot.plot(xdata, ydata)
         self.models[Account_Number].updateData(search_data)
         self.SearchBar.SearchCountLabel.setText("Search Count = %s"%str(self.models[Account_Number].r))
         
+    #Will splice data between 2 given dates.
+    def DateSplice(self, data, date1, date2):
+        data = data.loc[data['Date'] < date2]
+        data = data.loc[data['Date'] > date1]
+        return data
+    
     # Binds events to key presses
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
@@ -216,11 +227,16 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             self.setFocus()
 
 
+
 # The search bar frame
 class Search(QFrame):
     
     def __init__(self):
         super(Search, self).__init__()
+        self.setStyleSheet(St.StyleSheets['Search'])
+        self.datenum = 1
+        self.date1 = dt.strptime("01/01/1970","%d/%m/%Y")
+        self.date2 = dt.now()
         self.initUI()
     
     def initUI(self):
@@ -233,14 +249,14 @@ class Search(QFrame):
         self.lineedit.setStyleSheet(St.StyleSheets['Search'])
         
         self.CheckBoxes = CheckBoxes()
-        
-        self.CatPlot = PlotCanvas([],[])
-        xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
-        self.CatPlot.plot(xdata, ydata)
-        
+               
         self.ButtonFrame = DateButtons()
-        self.ButtonFrame.Date1Button.clicked.connect(self.onButtonClick)
-        self.ButtonFrame.Date2Button.clicked.connect(self.onButtonClick)
+        self.ButtonFrame.Date1Button.clicked.connect(self.onButtonClick1)
+        self.ButtonFrame.Date2Button.clicked.connect(self.onButtonClick2)
+        self.ButtonFrame.ResetDateButton.clicked.connect(self.DateReset)
+        
+        self.DateLabel = QLabel("")
+        self.DateLabel.setFont(QFont(*St.Search_Info_Font))
         
         self.calender = QCalendarWidget(self)
         self.calender.setHidden(True)
@@ -248,17 +264,37 @@ class Search(QFrame):
                 
         self.SearchCountLabel = QLabel("Search Count = ")  
         self.SearchCountLabel.setFont(QFont(*St.Search_Info_Font))
+
+        self.CatPlot = PlotCanvas([],[])
+        xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
+        self.CatPlot.plot(xdata, ydata)
         
-        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.calender, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,10,12], Align=Qt.AlignTop)
+        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,1,10,12], Align=Qt.AlignTop)
 
         self.show()
     
-    def onButtonClick(self):
+    def onButtonClick1(self):
         self.calender.setHidden(False)
+        self.datenum = 1
+        
+    def onButtonClick2(self):
+        self.calender.setHidden(False)
+        self.datenum = 2
+    
+    def DateReset(self):
+        self.date1 = dt.strptime("01/01/1970","%d/%m/%Y")
+        self.date2 = dt.now()
+        self.parent().SearchAndDisplay()
     
     def closeCalender(self):
-        
         self.calender.setHidden(True)
+        if self.datenum == 1:
+            self.date1 = self.calender.selectedDate().toPyDate()
+            self.DateLabel.setText("%s -> %s"%(dr.date2str(self.date1),dr.date2str(self.date2)))
+        elif self.datenum == 2:
+            self.date2 = self.calender.selectedDate().toPyDate()
+        self.parent().SearchAndDisplay()
+            
         
     # Preps data for the bar plot of the categories
     def dataPrep(self, data):
@@ -274,7 +310,8 @@ class Search(QFrame):
             return (xdata,ydata)
         except KeyError:
             pass
-        
+
+# A Frame to hold some buttons to control the date setting in the table
 class DateButtons(QFrame):
     def __init__(self):
         super(DateButtons, self).__init__()
@@ -283,17 +320,26 @@ class DateButtons(QFrame):
     def initUI(self):
         self.Date1Button = QPushButton("Date 1")
         self.Date2Button = QPushButton("Date 2")
+        self.ResetDateButton = QPushButton("Reset Date")
+        
+        self.Date1Button.setFont(QFont(*St.Search_Info_Font))
+        self.Date2Button.setFont(QFont(*St.Search_Info_Font))
+        self.ResetDateButton.setFont(QFont(*St.Search_Info_Font))
+        
         self.Date1Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.Date2Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.ResetDateButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
         self.Date1Button.setStyleSheet(St.StyleSheets['Date Buttons'])
         self.Date2Button.setStyleSheet(St.StyleSheets['Date Buttons'])
+        self.ResetDateButton.setStyleSheet(St.StyleSheets['Date Buttons'])
 
-        Funcs.AllInOneLayout(self, [self.Date1Button, self.Date2Button], VH='h')
+        Funcs.AllInOneLayout(self, [self.Date1Button, self.Date2Button, self.ResetDateButton], VH='h')
         
         self.show()
         
 
-# A frame to hold the CheckBoxes horizontally
+# A frame to hold the CheckBoxes horizontally, these control the search behaviour
 class CheckBoxes(QFrame):
     
     def __init__(self):

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
-from PyQt5.QtGui import QLinearGradient, QColor, QBrush
 
+from numpy.ma import masked_where, compressed
+from numpy import abs
 
 # A function to place objects in a layout.
 # Align decideds the alignment of the layout, the Margins decide the margins and spacing decides the spacing between widgets.
@@ -46,3 +47,17 @@ def dict_value_get(dictionary,value):
         return dictionary[value[0]]
     except IndexError:
         return None
+
+def aboveThreshold(data, threshold):
+     if type(data) == list:
+         new_data = []
+         for i in range(len(data)):
+             dat = masked_where(abs(data[0]) < threshold, data[i])
+             dat = compressed(dat)
+             new_data.append(dat)
+         return new_data
+     else:
+         data = masked_where(abs(data) < threshold, data)
+         data = compressed(data)
+         return data
+

@@ -1,6 +1,5 @@
-from numpy import linspace
-
 ### Table Related Styles
+
 font = "Helvetica [Cronyx]"
 Header_Font = (font,16)
 Item_Font = (font,14)
@@ -15,9 +14,9 @@ Title_Font = (font, 17)
 
 ### App Styles
 
-background_colour = [255, 255, 255, 255]
+background_colour = '#eeeeee'
 number_of_buttons_on_sidebar = 3
-sidebar_button_colour = '#f0f0ff'
+sidebar_button_colour = '#fbfbff'
 date_format = '%d/%m/%Y'
 
 ###rgba(251, 251, 251, 1)
@@ -85,12 +84,12 @@ StyleSheets['Table']  = """
 StyleSheets['Tab'] = """ 
         QTabBar::tab 
         {
-                background-color: lightgrey;  
-                gridline-color: none;
+                background-color: #eeeeee;  
+                height: 45px; 
+                width: 160px;
         }
         QTabWidget::pane 
         { 
-                border: 0; 
                 background-color: white;
         }
         QTabBar::tab::selected
@@ -100,15 +99,15 @@ StyleSheets['Tab'] = """
         }
         QTabBar::tab::hover
         {
-                background-color: lightgrey;
-                font-weight: bold;
+                background-color: #eeeeee;
+                font-weight: 900;
                 color: darkslategrey;
         }
         QTabBar::tab::selected::hover
         {
-                background-color: grey;
+                background-color: white;
                 font-weight: bold;
-                color: white;
+                color: black;
         }
         """
         
@@ -140,15 +139,13 @@ StyleSheets['Date Buttons'] = """.QPushButton
         {
             background-color: white;
             color: black;
-            font-size: 14;
-            font-weight: bold;
+            font-weight: light;
             border: 0;
         }
         .QPushButton::hover
         {
-            background-color: lightgreen;
+            background-color: white;
             color: black;
-            font-size: 15;
             font-weight: 900;
             border: 0;
         }
@@ -189,6 +186,10 @@ StyleSheets['Search'] = """.QLineEdit
             border: 0;
             font-weight: bold;
             font-size: 14;
+        }
+        QFrame
+        {
+        background-color: white;
         }
 """
 

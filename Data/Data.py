@@ -1,12 +1,26 @@
+#!/usr/bin/python3
+
 import pandas as pd
 import os
-from __main__ import categories_filename
 import datetime as dt
 import string as string_lib
+
 from Gui import StyleSheets as St
+
+### Telling the code where everything is. This needs to be above the Data module import as these are used in that module.
+categories_filename = '/home/ellismle/Documents/Other/Finances_app2/Categories.txt'
+col_head_filepath = '/home/ellismle/Documents/Other/Finances_app2/Data_Headers.txt'
+
+
+error_messgs = [] # A list to store anything that goes wrong...
+
+###
+
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
+    if type(filepaths) != list: # the filepaths must be given in a list
+        filepaths = [filepaths]    
     for file in filepaths:
         try:
             data = pd.read_csv(file,sep=',') #reads the data for each file
@@ -48,6 +62,7 @@ def list_check(search_item, LIST):
         if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
             return (True,list_item)
     return False
+
 # Returns a lowercase string
 def lower(i):
     try:
@@ -84,20 +99,34 @@ def dataPrep(i):
     except TypeError:
         return i
     
-# Converts the type of a column in a dataframe
-def convert_col(df,col,Type,error_msgs=[]):
-    col = col.lower()
-    col = col[0].upper() + col[1:]
+def datetimeformat(i):
+    return dt.datetime.strptime(i,St.date_format)
+
+def str2date(col):
     try:
-        if type(Type) == str:
-            if 'date' in Type.lower() or 'time' in Type.lower():
-                df[col] = pd.to_datetime(df[col],format=St.date_format)  
+        return col.apply(datetimeformat)
+    except:
+        try:
+            return pd.to_datetime(col)
+        except:
+            return col
+
+def date2str(dat):
+    return dt.datetime.strftime(dat,St.date_format)
+
+        
+
+def str2num(i):
+    try:
+        if float(i) == int(i):
+            return int(i)
         else:
-            df[col] = df[col].apply(Type)
-    except KeyError as e:
-         error_msgs.append('There is no '+col+' column in the bank_data')
+            return float(i)
+    except:
+        return i
 
-
+            
+        
 # Checks to see whether a search parameter (value) is in the dictionary's values. Works for strings, numbers and lists.
 def dict_value_search(value,dictionary):
     if type(value) == list or type(value) == set:
@@ -238,3 +267,71 @@ def categoriser(item):
             return 'Bars and Pubs'
     else:
         return cat
+
+def Paypal_Integration(paypal_filepaths):
+    if len(paypal_filepaths):
+        paypal_data = data_read(paypal_filepaths)   # Reads the paypal files and collates into 1 dataframe.
+        
+    return paypal_data
+
+def find_files(folderpath):
+    ### Finding the Bank Statement Files and Paypal files
+    poss_datafiles = os.listdir(folderpath)
+    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
+    datafilepaths = [i for i in poss_datafiles if 'payp' not in i]   # finding the non-paypal and therefore bank files
+    ###
+    return datafilepaths
+
+def Data_Read(filepath):
+    if os.path.isdir(filepath):
+        datafilepaths = find_files(filepath)
+        
+        data_clean(datafilepaths)                 # Permanently removes sensitive/useless data from bank statements
+        DATA = data_read(datafilepaths)       # Reads the statement files and collates them into 1 dataframe
+    else:
+        DATA = data_read('./')
+        
+    if len(datafilepaths):
+        names = dict_parser(col_head_filepath)
+    
+        ### Changing the names of the statement columns
+        cols = DATA.columns
+        new_cols = dict_value_search(list(cols),names)
+        DATA.columns = new_cols
+        ###
+        
+    ### Converting the type from string to something more useful
+    for i in DATA.columns:
+        DATA[i] = DATA[i].apply(str2num)
+        if DATA[i].dtype == object:
+            DATA[i] = str2date(DATA[i])   
+    ###
+    
+    if len(datafilepaths):
+        ### Sorting data from different bank accounts
+        DATA['Description'] = DATA['Description'].apply(up)
+        DATA = DATA.fillna('')
+        DATA['Description'] = DATA['Description'].apply(unclutter)
+        act_nums = list(set(list(DATA['Acc Num']))) # Finding the unique account numbers
+        dict_DATA = {i:DATA.loc[DATA['Acc Num'] == i] for i in act_nums} # Storing each account as a separate dictionary entry
+        for i in dict_DATA: # Deleting the account numbers in the dataframes
+            dict_DATA[i] = dict_DATA[i].drop([col for col in DATA.columns if 'Acc' in col], axis=1)
+        ###
+        cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
+        Plottable_cols = []
+        for i in dict_DATA:
+            dict_DATA[i] = dict_DATA[i].drop_duplicates()
+            dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Type'].apply(str)+';'+ dict_DATA[i].loc[:,'Description'].apply(str)+';'+dict_DATA[i].loc[:,'Balance'].apply(str)+';'+dict_DATA[i].loc[:,'In'].apply(str)+';'+dict_DATA[i].loc[:,'Out'].apply(str)+';'+ dict_DATA[i].loc[:,'Date'].apply(str)
+            dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Category'].apply(categoriser)
+            dict_DATA[i] = dict_DATA[i].sort_values(by='Date', ascending=False)
+            dict_DATA[i] = dict_DATA[i][cols_ordered] # Re-Ordering the Columns
+            dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(capital)
+            dict_DATA[i] = dict_DATA[i].sort_values('Date', 0, ascending=False)
+            dict_DATA[i].index = range(len(dict_DATA[i])) # Resorting the index
+    
+        
+        for col in dict_DATA[act_nums[0]].columns:
+            if dict_DATA[act_nums[0]][col].apply(dataPrep).dtype != object:
+                Plottable_cols.append(col)    
+    
+    return dict_DATA, Plottable_cols
