@@ -23,17 +23,19 @@ Aesthetics:
   * Key points are simplicity and readability.
   
 Functionality:
-- [x] Plot and tabulate data (the table should be interactive this time with pivots).
-- [x] Have all the usual search functionality of the old app.
-- [x] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
-- [x] Categorise data (maybe try to improve the categorisation. Machine learning may eventually help far in the future -it may be a good way to get into it)
-- [x] Find time averaged income -Specify an amount of days and have it tell me how much money I spend on average in that time.
-- [x] Find time averaged outgoings. 
-- [x] Predict future balance, could use the averages to begin with...
-- [x] Paypal integration.
-- [x] Have a settings page to change things outside of the source code such as the look of the app. CSS can do this with 
-- [x] Be able to write scripts within the app to perform functions on the data without changing the source code.
-- [x] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
+- [x] Plot and tabulate data 
+- [ ] Add pivots to the table.
+- [ ] Edit categories within the table.
+- [x] Be able to search through data using RegEx.
+- [x] Plot the spend for each category of data.
+- [ ] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
+- [x] Categorise data 
+- [x] Find time averaged incomings and outgoings.
+- [ ] Predict future balance, could use the averages to begin with...
+- [ ] Paypal integration.
+- [ ] Have a settings page to change things outside of the source code such as the look of the app.
+- [ ] Be able to write scripts within the app to perform functions on the data without changing the source code.
+- [ ] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
    
 Other notes:
   * I want to use Python3 and PyQT 5.
@@ -41,6 +43,3 @@ Other notes:
 
 
 
-
-# Currently:
-The app is currently still in its infancy. I have some basic code to categorise the bank data, a GUI to display the data from accounts in separate tabs. The code is fully object orientated and hopefully much more readable than the previous (spaghetti code) attempt. I have a separate file for back-end functions in the Data folder. This contains functions which can parse data from text files into dictionaries, categorise the data and read/save data etc... The Gui/front-end stuff is currently kept in the Gui folder. The app currently only has a table view page and a plotting page with limited extra functionality.
