@@ -16,7 +16,7 @@ Title_Font = (font, 17)
 
 background_colour = '#eeeeee'
 number_of_buttons_on_sidebar = 3
-sidebar_button_colour = '#fbfbff'
+sidebar_button_colour = '#eeeeee'
 date_format = '%d/%m/%Y'
 
 ###rgba(251, 251, 251, 1)
@@ -110,7 +110,32 @@ StyleSheets['Tab'] = """
                 color: black;
         }
         """
-        
+StyleSheets['Info Table']  = """
+        .QTableView
+        {   
+            border: none;
+            alternate-background-color: white;
+            background-color: white;
+            color: black;
+        }
+        .QTableView::item
+        {
+            text-align: center;
+        }
+        .QHeaderView::section
+        {
+            background-color: white;
+            border: none;
+            color: black;
+            font-weight: bold;
+        }
+        .QTableCornerButton::section 
+        {
+            border: none;
+            background-color: white;
+        }
+""" 
+       
 StyleSheets['Sidebar'] = """.QFrame 
         {
             background-color: white;

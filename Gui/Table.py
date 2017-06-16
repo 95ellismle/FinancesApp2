@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
 # PyQt related imports
-from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant, QStringListModel
-from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton, QCompleter
+from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QVariant
+from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidget, QTabWidget, QHeaderView, QLineEdit, QFrame, QLabel, QCheckBox, QCalendarWidget, QPushButton
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack, arange, around
+from numpy import shape, column_stack, arange, array
 from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
+from pandas import DataFrame
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -23,10 +24,9 @@ import Gui.StyleSheets as St
 
 test_list = ['Bob','Aarav','Afia','Jane']
 act_nums = list(dict_bank_data.keys())
-# This is some code taken from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
+# This is some code modified from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
 # I found the tableWidget was flagging in terms of performance for even smallish datasets (1,000+).
 # This QAbstractTableModel seems to perform much better when populating a tableView with a pandas dataframe.
-
 class PandasModel(QAbstractTableModel):
     """
     Class to populate a table view with a pandas dataframe
@@ -117,6 +117,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         b_col = QColor(St.background_colour)
         p.setColor(self.backgroundRole(), b_col)
         self.setPalette(p)   
+        self.search_data = self.statFinder(dict_bank_data[act_nums[0]])
         ###
         self.initUI() # Call the initUI function to initialise things
         
@@ -155,7 +156,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         
         self.tabbar = self.myTabs.tabBar()
                 
-        self.SearchBar = Search()
+        self.SearchBar = Search(self)
         self.SearchBar.setHidden(True)
 
         ### Sorting out the Layout
@@ -186,36 +187,43 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         search_item = self.SearchBar.lineedit.text() #grab the search text
         Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
         if search_item.lower() == '' or search_item.lower() == 'all' or search_item == "Search...":
-            search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
-            search_data = self.DateSplice(search_data,self.SearchBar.date1,self.SearchBar.date2)
+            self.search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
+            self.search_data = self.DateSplice(self.search_data,self.SearchBar.date1,self.SearchBar.date2)
         else:
             df = dict_bank_data[Account_Number] # find the data that corresponds to the tab currently selected
             df = self.DateSplice(df,self.SearchBar.date1,self.SearchBar.date2)
             check_boxes = self.SearchBar.CheckBoxes.bxs 
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
             mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
-            search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
+            self.search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
         
-        self.plotCategories(search_data) # Plots a little bar chart of the categorised data
-        self.models[Account_Number].updateData(search_data)
+        self.plotCategories(self.search_data) # Plots a little bar chart of the categorised data
+        self.models[Account_Number].updateData(self.search_data)
+        self.SearchBar.model.updateData(self.statFinder(self.search_data))
         
-        self.SearchBar.SearchCountLabel.setText("Total Spend = £%s\nSearch Count = %s\nAvg Per Item= £%s\nDaily Avg = £%s"%(self.statFinder(search_data)))
-    
     # Finds averages and sums
     def statFinder(self, data):
         total_spend = data['Out'].apply(dr.str2float).sum()
         item_count  = len(data)
+        total_in = data['In'].apply(dr.str2float).sum()
         if item_count > 0:
-            item_avg   = format(total_spend/item_count,",.2f")
             first_date = min(data['Date'])
             second_date = max(data['Date'])
             time_delta = second_date-first_date
+            item_avg   = format(total_spend/item_count,",.2f")
             daily_avg = format(total_spend/time_delta.days,",.2f")
+            time_delta = second_date-first_date
+            item_avg_in   = format(total_in/item_count,",.2f")
+            daily_avg_in = format(total_in/time_delta.days,",.2f")
         else:
             item_avg = '-'
             daily_avg = '-'
+            item_avg_in = '-'
+            daily_avg_in = '-'
         total_spend = format(total_spend, ",.0f")
-        return str(total_spend), format(item_count,',d'), str(item_avg), str(daily_avg)
+        total_in = format(total_in, ",.0f")
+        
+        return DataFrame({'Out':[total_spend, format(item_count,',d'), item_avg, daily_avg],'In':[total_in, format(item_count,',d'), item_avg_in, daily_avg_in]})
     
     # Plot the categories in a bar chart
     def plotCategories(self, data):
@@ -240,8 +248,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         if e.key() == Qt.Key_Escape: # Exit the Search with Esc
             self.SearchBar.setHidden(True)
             self.setFocus()
-            
-        elif e.key() == Qt.Key_Return or e.key() == Qt.Key_Enter and self.SearchBar.lineedit.hasFocus(): # Search for something with Enter
+        elif e.key() == Qt.Key_Return and self.SearchBar.lineedit.hasFocus(): # Search for something with Enter
             self.SearchAndDisplay()            
             self.setFocus()
 
@@ -250,8 +257,8 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
 # The search bar frame
 class Search(QFrame):
     
-    def __init__(self):
-        super(Search, self).__init__()
+    def __init__(self, parent):
+        super(Search, self).__init__(parent)
         self.setStyleSheet(St.StyleSheets['Search'])
         self.datenum = 1
         self.date1 = dt.strptime("01/01/1970","%d/%m/%Y")
@@ -268,7 +275,11 @@ class Search(QFrame):
         self.lineedit.setStyleSheet(St.StyleSheets['Search'])
                 
         self.CheckBoxes = CheckBoxes()
-               
+        
+        self.view = QTableView()
+        self.view.setStyleSheet(St.StyleSheets['Info Table'])
+        self.model = self.createTable(self.parent().search_data, self.view)
+        
         self.ButtonFrame = DateButtons()
         self.ButtonFrame.Date1Button.clicked.connect(self.onButtonClick1)
         self.ButtonFrame.Date2Button.clicked.connect(self.onButtonClick2)
@@ -280,24 +291,21 @@ class Search(QFrame):
         self.calender = QCalendarWidget(self)
         self.calender.setHidden(True)
         self.calender.clicked.connect(self.closeCalender)
-        
-        self.SearchCountLabel = QLabel("Total Spend = \nSearch Count = \nAverage Spend\nDaily Avg = ")  
-        self.SearchCountLabel.setFont(QFont(*St.Search_Info_Font))
 
         self.CatPlot = PlotCanvas([],[])
         xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
         self.CatPlot.plot(xdata, ydata)
         
-        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.SearchCountLabel, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,1,10,12], Align=Qt.AlignTop)
+        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.view, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,6,4,12], Align=Qt.AlignTop)
 
         self.show()
     
     def onButtonClick1(self):
-        self.calender.setHidden(False)
+        self.calender.setHidden(not self.calender.isHidden())
         self.datenum = 1
         
     def onButtonClick2(self):
-        self.calender.setHidden(False)
+        self.calender.setHidden(not self.calender.isHidden())
         self.datenum = 2
     
     def DateReset(self):
@@ -314,6 +322,18 @@ class Search(QFrame):
             self.date2 = self.calender.selectedDate().toPyDate()
         self.parent().SearchAndDisplay()
             
+    # This function creates the table using a TableView
+    def createTable(self, data, view):
+        model = InfoTable(data) # Create a model and fill it with data
+        view.setModel(model)
+        view.setShowGrid(St.Show_Table_Grid_Lines)
+        headers = view.horizontalHeader()
+        headers.setSectionResizeMode(0,QHeaderView.Stretch)  
+        headers.setSectionResizeMode(1,QHeaderView.Stretch)  
+        headers.setFont(QFont(*St.Search_Bar_Font))
+        view.resizeColumnsToContents() # Resize the column widths to fit the contents
+        view.show()
+        return model
         
     # Preps data for the bar plot of the categories
     def dataPrep(self, data):
@@ -329,6 +349,7 @@ class Search(QFrame):
             return (xdata,ydata)
         except KeyError:
             pass
+    
 
 # A Frame to hold some buttons to control the date setting in the table
 class DateButtons(QFrame):
@@ -357,6 +378,7 @@ class DateButtons(QFrame):
         
         self.show()
         
+
 
 # A frame to hold the CheckBoxes horizontally, these control the search behaviour
 class CheckBoxes(QFrame):
@@ -392,10 +414,12 @@ class PlotCanvas(FigureCanvas):
         self.ax.bar(range(len(ydata)),ydata)
         self.ax.set_xticks(ind + width / 2)
         self.ax.set_xticklabels(xlabels, rotation='vertical')
-        self.draw()
+        self.ax.grid(color='white')
         self.ax.tick_params(labelsize=7)
         self.ax.set_ylabel("Money Out / £", fontsize=7)
         self.ax.set_xlabel("Category", fontsize=7)
+        
+        self.draw()
         
         return error
 
@@ -410,3 +434,70 @@ class PlotCanvas(FigureCanvas):
  
         FigureCanvas.updateGeometry(self)
         return fig
+
+
+
+# Will populate a TableView with the stats on the table data. This is has only been slightly modified from the above PandasModel
+class InfoTable(QAbstractTableModel):
+    def __init__(self, data, parent=None):
+        QAbstractTableModel.__init__(self, parent)
+        self._data = data.values            # Returns a set of numpy arrays where each array contains a row from the dataframe in order.
+        self._cols = data.columns           # Gets the dataframe columns
+        self.r, self.c = shape(self._data)  # Finds the dimensions of the dataframe
+     
+    ### rowCount, columnCount and data are all necessary functions to call when using the QAbstractTableModel.
+    def rowCount(self, parent=None): #Controls the amount of rows in the tableview
+        return self.r
+    
+    def columnCount(self, parent=None): #Controls the amount of columns
+        return self.c
+
+    def data(self, index, role):
+        if index.isValid():
+            if role == Qt.DisplayRole: # Displays the data
+                return dr.TablePrep(self._data[index.row(),index.column()])
+            
+            if role == Qt.TextAlignmentRole:
+                return Qt.AlignCenter
+
+            if role == Qt.TextColorRole:
+                col = index.column()
+                if col == 0:
+                    return QVariant(QColor('#228B22'))
+                if col == 1:
+                    return QVariant(QColor('#65000B'))
+        return None
+    ###
+    # This modifies the headerData, Qt.Horizontal will edit the horizontal headers, Vertical ones will be row headers.
+    # p_int is the header index
+    def headerData(self, p_int, orientation, role):
+        headers = ['Total','Count','Avg Per Item','Daily Avg']
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._cols[p_int])
+            elif orientation == Qt.Vertical:
+                return headers[p_int]
+        return None
+
+    # This will modify the data in the table if it is changed in the table
+    def setData(self, index, value, role=Qt.EditRole):
+        if role == Qt.EditRole: 
+            row = index.row()
+            col = index.column()
+            if type(value) == str:
+                self._data[row,col] = dr.TablePrep(value) # Set the data to the newly typed value
+                return True
+            return False
+        
+    # A function to change the data displayed in the table.
+    def updateData(self, dataIn ,parent = QModelIndex()):
+        self.beginRemoveRows(parent, 0, self.r-1) # Remove previous data
+        self.endRemoveRows()
+        #
+        self._cols = dataIn.columns # update the table with the newly entered data.
+        self.r, self.c = shape(dataIn) # Reset the vital stats of the table
+        self.beginInsertRows(parent, 0, self.r-1) # insert the new data
+        self._data = dataIn.values
+        self.endInsertRows()
+        
+        return True
