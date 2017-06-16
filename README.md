@@ -23,17 +23,17 @@ Aesthetics:
   * Key points are simplicity and readability.
   
 Functionality:
-   - [] Plot and tabulate data (the table should be interactive this time with pivots).
-   - [] Have all the usual search functionality of the old app.
-   - [] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
-   - [] Categorise data (maybe try to improve the categorisation. Machine learning may eventually help far in the future -it may be a good way to get into it)
-   - [] Find time averaged income -Specify an amount of days and have it tell me how much money I spend on average in that time.
-   - [] Find time averaged outgoings. 
-   - [] Predict future balance, could use the averages to begin with...
-   - [] Paypal integration.
-   - [] Have a settings page to change things outside of the source code such as the look of the app. CSS can do this with 
-   - [] Be able to write scripts within the app to perform functions on the data without changing the source code.
-   - [] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
+- [x] Plot and tabulate data (the table should be interactive this time with pivots).
+- [x] Have all the usual search functionality of the old app.
+- [x] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
+- [x] Categorise data (maybe try to improve the categorisation. Machine learning may eventually help far in the future -it may be a good way to get into it)
+- [x] Find time averaged income -Specify an amount of days and have it tell me how much money I spend on average in that time.
+- [x] Find time averaged outgoings. 
+- [x] Predict future balance, could use the averages to begin with...
+- [x] Paypal integration.
+- [x] Have a settings page to change things outside of the source code such as the look of the app. CSS can do this with 
+- [x] Be able to write scripts within the app to perform functions on the data without changing the source code.
+- [x] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
    
 Other notes:
   * I want to use Python3 and PyQT 5.
