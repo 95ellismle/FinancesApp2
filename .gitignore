@@ -1,4 +1,6 @@
 # Ignore data files
 *.csv
 *test*
+*.pyc
+*cache*
 Rapid GUI Programming with Python and Qt.pdf

@@ -16,9 +16,9 @@ Travel:		London\_&\_South\_Eas, Amsterdam, Ecuador, Bike, Malta, LDS\_STN\_VTEC\
 
 Online\_Shopping:	gigacycle, TCS\_LTD, LIGHT\_IN , TOMTOP , RAPANUI , FLY\_TRADERS , ITUNES , ONLINE , ES.CO.UK , .COM , ALIEXPRESS , AMAZON , EBAY , SPOTIFY ;
 
-Subscriptions:	NEW\_SCIEN;
+Subscriptions:	NEW\_SCIEN, ECRA;
 
-Charity:	Labour, ECRA , APPEAL ;
+Charity:	Labour , APPEAL ;
 
 Activities:	360\_CHAMP , TICKET , BOWLI , ALEXANDRA\_PALACE , MUSEU , NATURAL\_HISTORY , THE\_DEEP , CGC\_EVENTS , CINEMA , THE\_ROYAL\_ARMOURIE , VUE , ROYAL\_BOTANIC\_GARD , IZ *LUNCHBOX\_THEAT , THEATRE ;
 

@@ -389,7 +389,7 @@ class CheckBoxes(QFrame):
     
     def initUI(self):
         self.bxs = {}
-        for name in dict_bank_data[27274868].columns:
+        for name in dict_bank_data[act_nums[0]].columns:
             self.bxs[name] = QCheckBox(str(name), self)
             self.bxs[name].setChecked(True)
             self.bxs[name].setStyleSheet(St.StyleSheets['Check Boxes'])

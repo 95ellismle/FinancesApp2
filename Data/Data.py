@@ -8,8 +8,8 @@ import string as string_lib
 from Gui import StyleSheets as St
 
 ### Telling the code where everything is. This needs to be above the Data module import as these are used in that module.
-categories_filename = '/home/ellismle/Documents/Other/Finances_app2/Categories.txt'
-col_head_filepath = '/home/ellismle/Documents/Other/Finances_app2/Data_Headers.txt'
+categories_filename = '/home/ellismle/Documents/Other/Finances_app2/Settings/Categories.txt'
+col_head_filepath = '/home/ellismle/Documents/Other/Finances_app2/Settings/Data_Headers.txt'
 
 
 error_messgs = [] # A list to store anything that goes wrong...
@@ -330,7 +330,6 @@ def Data_Read(filepath):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
-            
             dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Type'].apply(str)+';'+ dict_DATA[i].loc[:,'Description'].apply(str)+';'+dict_DATA[i].loc[:,'Balance'].apply(str)+';'+dict_DATA[i].loc[:,'In'].apply(str)+';'+dict_DATA[i].loc[:,'Out'].apply(str)+';'+ dict_DATA[i].loc[:,'Date'].apply(str)
             dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Category'].apply(categoriser)
             dict_DATA[i] = dict_DATA[i].sort_values(by='Date', ascending=False)

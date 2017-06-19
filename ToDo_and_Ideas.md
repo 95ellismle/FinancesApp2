@@ -6,6 +6,7 @@
 
 * Add a search bar to search through the data and display this in the table. Add an autocomplete feature to this search box.
 
+* Use fuzzy logic for the search algorithm and highlight the search item in the table by changing the colour of the string etc...
 
 #PLOTTING
 
