@@ -61,3 +61,17 @@ def aboveThreshold(data, threshold):
          data = compressed(data)
          return data
 
+
+def hex2RGB(HEX):
+    h = HEX.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+
+
+def changeColor(rgb, amount, rgb_indices):
+    rgb = list(rgb)
+    for i in rgb_indices:
+        rgb[i] = rgb[i] + amount
+    return rgb
+
+def rgb2str(rgb):
+    return 'rgb('+str(rgb[0])+','+str(rgb[1])+','+str(rgb[2])+')'

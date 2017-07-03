@@ -2,6 +2,7 @@ from Data import Data as dr
 
 
 bank_statement_folder_path = '/home/ellismle/Documents/Other/Finances-App(non git)/Stats/'
+paypal_paths = '/home/ellismle/Documents/Other/Finances-App(non git)/Stats/'
 dict_DATA, Plottable_cols = dr.Data_Read(bank_statement_folder_path)
  
 

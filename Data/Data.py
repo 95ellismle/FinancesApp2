@@ -46,16 +46,6 @@ def up(x):
         return x
     
     
-# Reads a group of data files and groups them into 1 dataframe.
-def data_read(filepaths):
-    if type(filepaths) == list:
-        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
-    if type(filepaths) == str:
-        files = [i for i in os.listdir(filepaths) if '.csv' in i]
-        data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
-    return data
-
-
 # Checks if a substring is in a list of strings and if it is returns the list item
 def list_check(search_item, LIST):
     for list_item in LIST:
@@ -275,6 +265,15 @@ def categoriser(item):
     else:
         return cat
 
+# Reads a group of data files and groups them into 1 dataframe.
+def data_read(filepaths):
+    if type(filepaths) == list:
+        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
+    if type(filepaths) == str:
+        files = [i for i in os.listdir(filepaths) if '.csv' in i]
+        data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
+    return data
+
 def Paypal_Integration(paypal_filepaths):
     if len(paypal_filepaths):
         paypal_data = data_read(paypal_filepaths)   # Reads the paypal files and collates into 1 dataframe.
@@ -289,17 +288,27 @@ def find_files(folderpath):
     ###
     return datafilepaths
 
-def Data_Read(filepath):
+def find_paypal_files(folderpath):
+    ### Finding the Bank Statement Files and Paypal files
+    poss_datafiles = os.listdir(folderpath)
+    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
+    datafilepaths = [i for i in poss_datafiles if 'payp' in i]   # finding the non-paypal and therefore bank files
+    ###
+    return datafilepaths
+
+def Data_Read(filepath, paypal=False):
     if os.path.isdir(filepath):
-        datafilepaths = find_files(filepath)
-        
+        if paypal == False:
+            datafilepaths = find_files(filepath)
+        else:
+            datafilepaths = find_paypal_files(filepath)
         data_clean(datafilepaths)                 # Permanently removes sensitive/useless data from bank statements
         DATA = data_read(datafilepaths)       # Reads the statement files and collates them into 1 dataframe
     else:
         DATA = data_read('./')
         
     if len(datafilepaths):
-        names = dict_parser(col_head_filepath)
+        names = dict_parser(col_head_filepath) #Grabbing the data headers
     
         ### Changing the names of the statement columns
         cols = DATA.columns

@@ -1,5 +1,8 @@
+from Gui import Funcs as f
+
 ### Table Related Styles
 
+table_background_color = '#ffffff'
 font = "Helvetica [Cronyx]"
 Header_Font = (font,16)
 Item_Font = (font,14)
@@ -34,8 +37,8 @@ StyleSheets['Table']  = """
         QTableView
         {   
             border: none;
-            alternate-background-color: #fbfbfb;
-            background-color: white;
+            alternate-background-color: %s;
+            background-color: %s;
             color: black;
         }
         QTableView::item:hover
@@ -50,7 +53,7 @@ StyleSheets['Table']  = """
         }
         QHeaderView::section
         {
-            background-color: white;
+            background-color: %s;
             border: 0;
             color: black;
             height: 50px;
@@ -59,7 +62,7 @@ StyleSheets['Table']  = """
         }
         QScrollBar:vertical {
             width: 25px;
-            background-color: white;
+            background-color: %s;
         }  
         QScrollBar::handle::vertical
         {
@@ -68,18 +71,27 @@ StyleSheets['Table']  = """
         }
         QScrollBar::up-arrow::vertical 
         { 
-            background-color: #f2f2f2;
+            background-color: %s;
             border: 0;
         }
 
         QScrollBar::down-arrow::vertical 
         {
-            background-color: #f2f2f2;
+            background-color: %s;
             border: 0;
-
         }
-
-"""
+        QScrollBar::add-line:vertical 
+        {
+              border: none;
+              background: %s;
+        }
+        
+        QScrollBar::sub-line:vertical 
+        {
+              border: none;
+              background: %s;
+        }
+"""%(f.rgb2str(f.changeColor(f.hex2RGB(table_background_color), -10, [0,1,2])), table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color)
 
 StyleSheets['Tab'] = """ 
         QTabBar::tab 

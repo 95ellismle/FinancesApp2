@@ -3,7 +3,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 
-class SpecialPage(QWidget):
+class SettingsPage(QWidget):
     
     def __init__(self):
         super().__init__()
