@@ -13,5 +13,5 @@
 
 
 
-Demo: off;	# Tells the code whether to use demo data or not.
+Demo: on;	# Tells the code whether to use demo data or not.
 

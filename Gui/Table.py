@@ -191,7 +191,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     def SearchAndDisplay(self):
         search_item = self.SearchBar.lineedit.text().lower() #grab the search text
         Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
-        if search_item == '' or search_item == 'all' or search_item == "Search...":
+        if search_item == '' or search_item == 'all' or search_item == "search...":
             self.search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
             self.search_data = self.DateSplice(self.search_data, self.SearchBar.date1, self.SearchBar.date2)
         else:
@@ -199,6 +199,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             df = self.DateSplice(df, self.SearchBar.date1, self.SearchBar.date2)
             check_boxes = self.SearchBar.CheckBoxes.bxs 
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
+            print(Account_Number)
             mask = column_stack([df[col].apply(dr.lower).str.contains(search_item, na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
             self.search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
         

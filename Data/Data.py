@@ -66,9 +66,12 @@ def TablePrep(item):
         return dt.datetime.strftime(item,St.date_format)
     except TypeError:
         try:
-            return str(item)
+            return "%.2f"% round(item,2)
         except:
-            return "None"
+            try:
+                return str(item)
+            except:
+                return "None"
 
 # Converts a string to an integer if possible and if it below a certain value
 def str2int(string):
@@ -87,7 +90,7 @@ def str2float(i):
 # Convert a string to a float and ignore exceptions
 def dataPrep(i):
     try:
-        return float(i)
+        return round(float(i),2)
     except ValueError:
         try:
             return pd.to_datetime(i,format=St.date_format)

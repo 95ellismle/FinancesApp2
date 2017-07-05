@@ -1,5 +1,7 @@
 # FinancesApp2
-An app designed to help with managing personal finances.
+An app designed to help with managing personal finances. The video demonstration below is using random data.
+
+<img src="Pics/Peek 2017-07-06 00-21.gif">
 
 To use the app you will either have to create some pseudo-data using the data creator code or save your bank data in a folder name "Stats" in the same directory as the main.py file. Currently the app only works with data from TSB bank accounts. However, other banks may be added later.
 
@@ -8,7 +10,7 @@ To create pseudo-data simply use the command "python3 Random_Data_Creator.py" an
 Whether using demo data or your own bank data the app has the same set of features. These are shown below, the check boxes without ticks are under development.
 - [x] Plot and tabulate data
 - [ ] Pivots in tables.
-- [ ] Edit categories within the table.
+- [x] Edit categories within the table.
 - [x] Be able to search through data with or without RegEx.
 - [x] Plot the spend for each category of data in a bar chart.
 - [ ] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
