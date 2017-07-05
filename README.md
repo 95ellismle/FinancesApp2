@@ -1,7 +1,7 @@
 # FinancesApp2
 An app designed to help with managing personal finances. The data in this video isn't real bank data.
 
-<img src="Pics/Peek 2017-07-06 00-21.gif">
+<img src="Pics/demo.gif">
 
 To use the app you will either have to create some pseudo-data using the data creator code or save your bank data in a folder name "Stats" in the same directory as the main.py file. Currently the app only works with data from TSB bank accounts. However, other banks may be added later.
 
