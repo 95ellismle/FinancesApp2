@@ -57,8 +57,8 @@ def list_check(search_item, LIST):
 def lower(i):
     try:
         return i.lower()
-    except TypeError:
-        print(i)
+    except (TypeError, AttributeError):
+        pass
         
 # Converts a datetime to a string for displaying the dataframe data
 def TablePrep(item):
@@ -68,7 +68,7 @@ def TablePrep(item):
         try:
             return str(item)
         except:
-            return None
+            return "None"
 
 # Converts a string to an integer if possible and if it below a certain value
 def str2int(string):
@@ -143,7 +143,7 @@ def dict_value_search(value,dictionary):
             if list_check(value,dict_values[1]):
                     return dict_values[0]
     else:
-        return 0
+        return None
 
 
 # Saves the data to a specified location.
@@ -212,9 +212,29 @@ def unclutter(string):
 def capital(i):
     return string_lib.capwords(i)
 
+# Parses the category exceptions into a list
+def exceptionparser(filepath):
+    try:
+        f = open(filepath)
+        txt = f.read()
+        f.close()
+    except FileNotFoundError:
+        return None
+    LIST = [comment_remove(i) for i in txt.split('\n') if comment_remove(i)]
+    LIST = [i.split('|') for i in LIST]
+    exceptions = [i[0].replace(" ","") for i in LIST]
+    new_cat = [i[1] for i in LIST]
+    return exceptions,new_cat
+    
+
+exceptions = exceptionparser('Settings/Exceptions.txt')
 # Categorises the data
 def categoriser(item):
-    Type, Desc, Bal, In, Out, Date = item.lower().split(';')
+    item = item.lower()
+    if item.replace(" ","") in exceptions[0]:
+        ind = exceptions[0].index(item.replace(" ",""))
+        return exceptions[1][ind]
+    Type, Desc, Bal, In, Out, Date = item.split(';')
 
     if Type == 'cpt':
         return 'Cash'
@@ -241,7 +261,7 @@ def categoriser(item):
         else:
             return'Groceries'
 
-    if cat == 'High Street':
+    elif cat == 'High Street':
         if list_check(Desc,cats['Groceries']):
             return 'Groceries'
         elif list_check(Desc,cats['Online Shopping']):
@@ -249,7 +269,7 @@ def categoriser(item):
         else:
             return 'High Street'
     
-    if cat == 'Car':
+    elif cat == 'Car':
         if list_check(Desc,cats['High Street']):
             return 'High Street'       
         elif list_check(Desc,cats['Online Shopping']):
@@ -257,13 +277,16 @@ def categoriser(item):
         else:
             return 'Car'
     
-    if cat == 'Bars and Pubs':
+    elif cat == 'Bars and Pubs':
         if list_check(Desc,cats['Eating Out']):
             return 'Eating Out'
         else:
             return 'Bars and Pubs'
     else:
         return cat
+
+def string(i):
+    return str(i).rstrip()
 
 # Reads a group of data files and groups them into 1 dataframe.
 def data_read(filepaths):
@@ -339,12 +362,14 @@ def Data_Read(filepath, paypal=False):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
-            dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Type'].apply(str)+';'+ dict_DATA[i].loc[:,'Description'].apply(str)+';'+dict_DATA[i].loc[:,'Balance'].apply(str)+';'+dict_DATA[i].loc[:,'In'].apply(str)+';'+dict_DATA[i].loc[:,'Out'].apply(str)+';'+ dict_DATA[i].loc[:,'Date'].apply(str)
-            dict_DATA[i].loc[:,'Category'] = dict_DATA[i].loc[:,'Category'].apply(categoriser)
+            dict_DATA[i]['Category'] = dict_DATA[i]['Type']
+            for col in ['Description','Balance','In','Out','Date']:
+                dict_DATA[i]['Category'] = dict_DATA[i]['Category'] + ';' + dict_DATA[i][col].apply(string)
+            dict_DATA[i].index = range(len(dict_DATA[i])) # Resorting the index
+            dict_DATA[i]['Category'] = dict_DATA[i]['Category'].apply(categoriser)
             dict_DATA[i] = dict_DATA[i].sort_values(by='Date', ascending=False)
             dict_DATA[i] = dict_DATA[i][cols_ordered] # Re-Ordering the Columns
             dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(capital)
-            dict_DATA[i].index = range(len(dict_DATA[i])) # Resorting the index
     
         
         for col in dict_DATA[act_nums[0]].columns:

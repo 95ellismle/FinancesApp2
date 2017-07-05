@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidge
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack, arange, array
+from numpy import shape, column_stack, arange, nan
 from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
 from pandas import DataFrame
@@ -21,9 +21,10 @@ from Data import Data as dr
 from Gui import Funcs
 import Gui.StyleSheets as St
 
-
-test_list = ['Bob','Aarav','Afia','Jane']
+Editted_Items = []
+test_list = ['Bob', 'Aarav', 'Afia', 'Jane']
 act_nums = list(dict_bank_data.keys())
+colums = dict_bank_data[act_nums[0]].columns
 # This is some code modified from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
 # I found the tableWidget was flagging in terms of performance for even smallish datasets (1,000+).
 # This QAbstractTableModel seems to perform much better when populating a tableView with a pandas dataframe.
@@ -32,6 +33,7 @@ class PandasModel(QAbstractTableModel):
     Class to populate a table view with a pandas dataframe
     """
     def __init__(self, data, parent=None):
+        self.counter = 0
         QAbstractTableModel.__init__(self, parent)
         self._data = data.values            # Returns a set of numpy arrays where each array contains a row from the dataframe in order.
         self._cols = data.columns           # Gets the dataframe columns
@@ -44,22 +46,24 @@ class PandasModel(QAbstractTableModel):
     def columnCount(self, parent=None): #Controls the amount of columns
         return self.c
 
-    def data(self, index, role):
+    def data(self, index, role): #Controls how the data looks in the table
+        global Editted_Items
         if index.isValid():
-            if role == Qt.EditRole: # Make the data editable
-                return dr.TablePrep(self._data[index.row(),index.column()])
+            rowI, colI = index.row(), index.column()
+            if role == Qt.EditRole:
+                if (rowI, colI) not in Editted_Items:
+                    Editted_Items.append((rowI, colI))
+                return dr.TablePrep(self._data[rowI, colI])
                 
             if role == Qt.DisplayRole: # Displays the data
-                return dr.TablePrep(self._data[index.row(),index.column()])
+                return dr.TablePrep(self._data[rowI, colI])
             
             if role == Qt.TextColorRole:
-                colind = index.column()
-                col = self._cols[colind]
-                row = index.row()
-                if col == 'Balance' and float(self._data[row,colind]) < 0:
+                col = self._cols[colI]
+                row = rowI
+                if col == 'Balance' and float(self._data[row, colI]) < 0:
                     return QVariant(QColor('#ff0000')) 
-                      
-
+            
         return None
     ###
 
@@ -85,12 +89,12 @@ class PandasModel(QAbstractTableModel):
             row = index.row()
             col = index.column()
             if type(value) == str:
-                self._data[row,col] = dr.TablePrep(value) # Set the data to the newly typed value
+                self._data[row, col] = dr.TablePrep(value) # Set the data to the newly typed value
                 return True
             return False
         
     # A function to change the data displayed in the table.
-    def updateData(self, dataIn ,parent = QModelIndex()):
+    def updateData(self, dataIn, parent = QModelIndex()):
         self.beginRemoveRows(parent, 0, self.r-1) # Remove previous data
         self.endRemoveRows()
         #
@@ -145,7 +149,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             Ifont = QFont(*St.Item_Font)
             self.views[name].setFont(Ifont)
             ###
-            Funcs.AllInOneLayout(self.tabWidget,[self.views[name]]) # add the self.view object to the self.tabWidget object's layout
+            Funcs.AllInOneLayout(self.tabWidget, [self.views[name]]) # add the self.view object to the self.tabWidget object's layout
             
             Tfont = QFont(*St.Tab_Font)
             self.myTabs.setFont(Tfont)
@@ -154,13 +158,14 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             self.models[name] = self.createTable(dict_bank_data[name], self.views[name]) # Call the create table function to create a table
         ###
         
+        
         self.tabbar = self.myTabs.tabBar()
                 
         self.SearchBar = Search(self)
         self.SearchBar.setHidden(True)
 
         ### Sorting out the Layout
-        Funcs.AllInOneLayout(self,[self.myTabs,self.SearchBar],VH='h',Stretches=[4,1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
+        Funcs.AllInOneLayout(self, [self.myTabs, self.SearchBar], VH='h', Stretches=[4, 1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
         ###
         
         self.show() # show the entire app
@@ -170,8 +175,8 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         model = PandasModel(data) # Create a model and fill it with data
         view.setModel(model)
         view.setShowGrid(St.Show_Table_Grid_Lines)
-        for i in range(1,len(dict_bank_data[act_nums[0]].columns)):
-                self.headers.setSectionResizeMode(int(i),QHeaderView.Stretch)  
+        for i in range(1, len(dict_bank_data[act_nums[0]].columns)):
+                self.headers.setSectionResizeMode(int(i), QHeaderView.Stretch)  
         view.resizeColumnsToContents() # Resize the column widths to fit the contents
         view.show()
         return model
@@ -184,17 +189,17 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     
     # A function to search the data and display the required items
     def SearchAndDisplay(self):
-        search_item = self.SearchBar.lineedit.text() #grab the search text
+        search_item = self.SearchBar.lineedit.text().lower() #grab the search text
         Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
-        if search_item.lower() == '' or search_item.lower() == 'all' or search_item == "Search...":
+        if search_item == '' or search_item == 'all' or search_item == "Search...":
             self.search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
-            self.search_data = self.DateSplice(self.search_data,self.SearchBar.date1,self.SearchBar.date2)
+            self.search_data = self.DateSplice(self.search_data, self.SearchBar.date1, self.SearchBar.date2)
         else:
             df = dict_bank_data[Account_Number] # find the data that corresponds to the tab currently selected
-            df = self.DateSplice(df,self.SearchBar.date1,self.SearchBar.date2)
+            df = self.DateSplice(df, self.SearchBar.date1, self.SearchBar.date2)
             check_boxes = self.SearchBar.CheckBoxes.bxs 
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
-            mask = column_stack([df[col].apply(str).apply(dr.lower).str.contains(search_item.lower(), na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
+            mask = column_stack([df[col].apply(dr.lower).str.contains(search_item, na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
             self.search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
         
         self.plotCategories(self.search_data) # Plots a little bar chart of the categorised data
@@ -210,10 +215,10 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             first_date = min(data['Date'])
             second_date = max(data['Date'])
             time_delta = second_date-first_date
-            item_avg   = format(total_spend/item_count,",.2f")
-            daily_avg = format(total_spend/time_delta.days,",.2f")
+            item_avg   = format(total_spend/item_count, ",.2f")
+            daily_avg = format(total_spend/time_delta.days, ",.2f")
             time_delta = second_date-first_date
-            item_avg_in   = format(total_in/item_count,",.2f")
+            item_avg_in   = format(total_in/item_count, ",.2f")
             daily_avg_in = format(total_in/time_delta.days,",.2f")
         else:
             item_avg = '-'
@@ -240,20 +245,41 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
             if e.key() == Qt.Key_F: # Open search with Cntrl-F
-                self.searchOpen()   
-                
-        if e.modifiers() == Qt.AltModifier: # Change between tabs with Alt-number
+                self.searchOpen()       
+        elif e.modifiers() == Qt.AltModifier: # Change between tabs with Alt-number
             self.tabbar.setCurrentIndex(e.key()-49)
-            
+        
         if e.key() == Qt.Key_Escape: # Exit the Search with Esc
             self.SearchBar.setHidden(True)
             self.setFocus()
         elif e.key() == Qt.Key_Return and self.SearchBar.lineedit.hasFocus(): # Search for something with Enter
             self.SearchAndDisplay()            
             self.setFocus()
-
-
-
+        elif e.key() == Qt.Key_Return and any(self.views[i].hasFocus for i in self.views):
+            global Editted_Items
+            Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
+            for i in range(len(Editted_Items)):
+                rowT,colI = Editted_Items[i][0], Editted_Items[i][1]
+                col = colums[colI]
+                if col == 'Category':
+                    time = self.models[Account_Number]._data[rowT,4]
+                    balance = self.models[Account_Number]._data[rowT,5]
+                    same_day = dict_bank_data[Account_Number].loc[dict_bank_data[Account_Number]["Date"] == time]
+                    same_item = same_day.loc[same_day['Balance'] == balance]
+                    current_category = str(same_item['Category'].values[0])
+                    editted_category = self.models[Account_Number]._data[rowT,colI]
+                    if current_category != editted_category:
+                        entry = str(self.models[Account_Number]._data[rowT,6])
+                        for i in [0,5,2,3,4]:
+                            entry = entry + ';' + str(self.models[Account_Number]._data[rowT,i])
+                        entry = entry.lower()
+                        if entry not in dr.exceptions[0]:
+                            f = open('Settings/Exceptions.txt','a')
+                            f.write(entry+'|'+editted_category+"\n")
+                            f.close()
+                            print("Changed the category from "+current_category+" to "+editted_category+" for "+str(self.models[Account_Number]._data[rowT,0]))
+            Editted_Items = []
+                            
 # The search bar frame
 class Search(QFrame):
     
@@ -490,7 +516,7 @@ class InfoTable(QAbstractTableModel):
             return False
         
     # A function to change the data displayed in the table.
-    def updateData(self, dataIn ,parent = QModelIndex()):
+    def updateData(self, dataIn, parent = QModelIndex()):
         self.beginRemoveRows(parent, 0, self.r-1) # Remove previous data
         self.endRemoveRows()
         #

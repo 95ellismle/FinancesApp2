@@ -1,0 +1,13 @@
+#Exception|Category
+fpo;melissa loddo jun :;2132.94;;550.0;2017-06-09 00:00:00|Travel
+fpi;miss h l holland apr;2231.37;24.0;;2017-04-03 00:00:00|Eating Out
+fpo;liam o'brien sep :;2495.84;;100.0;2016-09-12 00:00:00|Rent, Bills & Fines
+fpo;liam o'brien aug :;2003.8;;9.0;2016-08-12 00:00:00|Eating Out
+deb;newcastle uni stud;3642.03;;3.99;2017-02-06 00:00:00|Bars And Pubs
+deb;newcastle uni stud;3636.03;;6.0;2017-02-06 00:00:00|Bars And Pubs
+fpi;miss h l holland;2759.16;88.05;;2016-05-13 00:00:00|Rent, Bills & Fines
+fpo;megan johnston dec :;1896.21;;4.7;2015-12-09 00:00:00|Bars And Pubs
+fpi;miss h l holland;2035.87;1.0;;2015-12-02 00:00:00|Rent, Bills & Fines
+fpi;miss h l holland aug;1059.14;45.0;;2015-08-17 00:00:00|Rent, Bills & Fines
+fpi;miss h l holland;2216.5;12.76;;2015-11-26 00:00:00|Eating Out
+deb;university of york;2203.74;;3.3;2015-11-25 00:00:00|Groceries

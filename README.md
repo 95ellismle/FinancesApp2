@@ -1,10 +1,28 @@
 # FinancesApp2
-A new version of the original finances app found on my profile. 
+An app designed to help with managing personal finances.
 
-I haven't got much of it written yet but the core aims of it are readability of code, the interface should be designed with aesthetics in mind (but obviously not sacrifice functionality) and the code should be object orientated.
+To use the app you will either have to create some pseudo-data using the data creator code or save your bank data in a folder name "Stats" in the same directory as the main.py file. Currently the app only works with data from TSB bank accounts. However, other banks may be added later.
 
-To begin with the app will be built for Ubuntu. However, if I have the inclination later I may try to get it working for Windows as well depending on whether anyone else would want to use it!
+To create pseudo-data simply use the command "python3 Random_Data_Creator.py" and then in the "Settings.txt" file (in the Setting folder) set the variable demo to "on".
 
+Whether using demo data or your own bank data the app has the same set of features. These are shown below, the check boxes without ticks are under development.
+- [x] Plot and tabulate data
+- [ ] Pivots in tables.
+- [ ] Edit categories within the table.
+- [x] Be able to search through data with or without RegEx.
+- [x] Plot the spend for each category of data in a bar chart.
+- [ ] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
+- [x] Categorise data
+- [x] Find time averaged incomings and outgoings.
+- [ ] Predict future balance, could use the averages to begin with...
+- [ ] Paypal integration.
+- [ ] Have a settings page to change things outside of the source code such as the look of the app.
+- [ ] Be able to write scripts within the app to perform functions on the data without changing the source code.
+- [ ] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
+- [ ] Be able to load new data into the app.
+
+
+** Other important features of the code: **
 
 Readability of the Code:
   * The code should be commented well, keep it concise but informative.
@@ -18,28 +36,10 @@ Aesthetics:
   * Use simple non contrasting colours so as to not distract from the functionality. Must look modern and 'up-to-date'!
   * Keep things as tidied away as possible. Less is definitely more!
   * Use CSS to style the app, any pages of pure, undynamic text should be written in HTML.
-  * Styling should be consistent throughout, use the same background colour for all widgets etc... 
+  * Styling should be consistent throughout, use the same background colour for all widgets etc...
   * Use minimal adornments on widgets. E.g. tables don't need gridlines, widgets don't need borders, graphs don't need matplotlib's silly frame!
   * Key points are simplicity and readability.
-  
-Functionality:
-- [x] Plot and tabulate data 
-- [ ] Add pivots to the table.
-- [ ] Edit categories within the table.
-- [x] Be able to search through data using RegEx.
-- [x] Plot the spend for each category of data.
-- [ ] Be able to save editted data. Not sure if I would want it all saving into 1 document or just updating a current one?
-- [x] Categorise data 
-- [x] Find time averaged incomings and outgoings.
-- [ ] Predict future balance, could use the averages to begin with...
-- [ ] Paypal integration.
-- [ ] Have a settings page to change things outside of the source code such as the look of the app.
-- [ ] Be able to write scripts within the app to perform functions on the data without changing the source code.
-- [ ] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
-   
+
 Other notes:
   * I want to use Python3 and PyQT 5.
   * I'll be using the Pandas library and Numpy and Matplotlib extensively.
-
-
-

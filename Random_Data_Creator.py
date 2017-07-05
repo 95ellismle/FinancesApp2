@@ -7,10 +7,10 @@ Created on Mon Aug 22 22:23:37 2016
 
 
 
-categories_filename = '/home/ellismle/Documents/Other/Finances_app2/Settings/Categories.txt'
-save_filepath = './Demo_Data/'
-number_of_sample_data_files = 6
-
+categories_filename = 'Settings/Categories.txt'
+save_filepath = 'Demo_Data/'
+number_of_sample_data_files = 3
+data_length = 2000
 
 
 
@@ -49,7 +49,6 @@ def datamaker(i, save_filepath):
 
     column_headers = [act_n,date,bal,out,In,descript]
     
-    data_length = 2000
     date1 = dt.datetime(2016,1,1)
     orig_balance = abs(round(rand.gauss(0,1000),2))
     
@@ -65,7 +64,7 @@ def datamaker(i, save_filepath):
     data[date] = pd.date_range(date1,date1+dt.timedelta(data_length-1),freq = 'D')
 
     ## Debit Amount
-    data[out] = [round(abs(rand.gauss(0,37)),2) if rand.randint(0,33) < 32 else 0 for i in range(data_length)]
+    data[out] = [round(abs(rand.gauss(0,34)),2) if rand.randint(0,33) < 32 else 0 for i in range(data_length)]
 
     ## Credit Amount
     data[In] = data[out]

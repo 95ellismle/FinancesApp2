@@ -1,0 +1,17 @@
+# This file controls the settings of the program.
+#                                                
+# 
+# The word on the left side is the variable and the word on 
+# the right side is its value. If the correct format is not
+# used the code will not recognise the variable and will use
+# defaults.
+#
+# The correct format is given below:
+#	VARIABLE: VALUE;
+
+
+
+
+
+Demo: off;	# Tells the code whether to use demo data or not.
+
