@@ -1,5 +1,5 @@
 # FinancesApp2
-An app designed to help with managing personal finances. The video demonstration below is using random data.
+An app designed to help with managing personal finances. The data in this video isn't real bank data.
 
 <img src="Pics/Peek 2017-07-06 00-21.gif">
 
