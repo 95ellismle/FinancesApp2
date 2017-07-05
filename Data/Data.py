@@ -357,8 +357,8 @@ def Data_Read(filepath, paypal=False):
         DATA['Description'] = DATA['Description'].apply(unclutter)
         DATA = DATA.sort_values('Date', 0, ascending=False)
         act_nums = DATA['Acc Num'].unique() # Finding the account numbers
-        act_nums = list(reversed(list(act_nums)))
-        dict_DATA = {i:DATA.loc[DATA['Acc Num'] == i] for i in act_nums} # Storing each account as a separate dictionary entry
+        dict_DATA = {i:DATA.loc[DATA['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
+        act_nums = range(len(act_nums))
         for i in dict_DATA: # Deleting the account numbers in the dataframes
             dict_DATA[i] = dict_DATA[i].drop([col for col in DATA.columns if 'Acc' in col], axis=1)
         ###
