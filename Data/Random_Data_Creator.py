@@ -8,14 +8,17 @@ Created on Mon Aug 22 22:23:37 2016
 
 
 categories_filename = 'Settings/Categories.txt'
-save_filepath = 'Demo_Data/'
-number_of_sample_data_files = 3
+save_filepath = 'Data/Demo_Data/'
+#number_of_sample_data_files = 3
 data_length = 2000
 
 
 
 
-
+def remove_files_from_folder(folder):
+    files = os.listdir(folder)
+    for i in files:
+        os.remove(folder+i)
 
 
 
@@ -28,18 +31,27 @@ import os
 from Data import Data as dr
 
 
-
-
-files = os.listdir(save_filepath)
-for i in files:
-    os.remove(save_filepath+i)
-
-
+from __main__ import demo_data
 
 cats = dr.dict_parser(categories_filename)
+count = 0
 
+def make_data(num_accs):
+    if "c" in num_accs.lower():
+        return 0
+    try:
+        num_accs = int(num_accs)
+        print("Okie doke, making "+str(num_accs)+" accounts of fake data!")
+        for i in range(num_accs):
+            datamaker(i,demo_data)
+    except:
+        make_data(input("Sorry that's not a number I recognise...\n\nPlease enter a number or type 'c' to cancel"))
 
-def datamaker(i, save_filepath):
+def datamaker(i, save_filepath): 
+    global count
+    if count == 0:
+        remove_files_from_folder(save_filepath)
+    count += 1
     act_n = 'Account Number'
     date = 'Transaction Date'
     bal = 'Balance'
@@ -133,6 +145,3 @@ def datamaker(i, save_filepath):
 
     data[descript] = data[descript].apply(describer)
     data.to_csv(save_filepath,index=False)
-
-for i in range(number_of_sample_data_files):
-    datamaker(i, save_filepath)

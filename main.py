@@ -1,9 +1,28 @@
 from Data import Data as dr
 
-settings = dr.dict_parser("Settings/Settings.txt",'l')
-if settings['demo'][0] == 'on':
-    bank_statement_folder_path = 'Demo_Data/'
-    paypal_paths = 'Demo_Data/'  
+bank_data_folder = dr.settings['Statement_folder_location'][0]
+demo_data = dr.settings['Demo_data_folder'][0]
+
+from Data import Random_Data_Creator
+
+
+def create_data(data_create_question):
+    if 'y' in data_create_question.lower():
+        num_accs = input("How many account's worth should I make?\t")
+        Random_Data_Creator.make_data(num_accs)
+        return 0
+    elif 'n' in data_create_question.lower():
+        print("OK, I'll just try and load the data that is already there.\n")
+        return 0
+    else:
+        create_data(input("Sorry please type yes or no...\t"))
+
+if dr.settings['Demo'][0] == 'on':
+    data_create_question = input("Should I create some random data? [y/n]\t")
+    create_data(data_create_question)
+    
+    bank_statement_folder_path = demo_data
+    paypal_paths = demo_data  
 else:
     bank_statement_folder_path = 'Stats/'
     paypal_paths = 'Stats/' 
@@ -20,5 +39,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App.App()
     sys.exit(app.exec_())
-
-
+    
+    
+    

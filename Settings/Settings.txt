@@ -14,4 +14,7 @@
 
 
 Demo: on;	# Tells the code whether to use demo data or not.
+Account_Names: Current, Student; 	# Names for the accounts
+Statement_folder_location: Stats/; 	# Should have a slash after
+Demo_data_folder: Data/Demo_Data/;	# Should have a slash after
 

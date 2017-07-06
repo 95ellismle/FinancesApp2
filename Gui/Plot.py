@@ -16,6 +16,7 @@ from numpy import array
 from __main__ import dict_DATA as dict_bank_data
 from __main__ import Plottable_cols
 from Data import Data as dr
+from Data import Type_Convert as tc
 from Gui.Funcs import AllInOneLayout, dict_value_get
 from Gui import StyleSheets as St
 act_nums = list(dict_bank_data.keys())
@@ -85,7 +86,7 @@ class PlotPage(QWidget):
     def Ok_Button_Click(self):
         control_text = self.control_box.toPlainText()
         self.plot_params = dr.dict_parser(control_text)
-        self.Plot_Mesg = dr.dict2str(self.plot_params)
+        self.Plot_Mesg = tc.dict2str(self.plot_params)
         self.control_box.setPlainText(self.Plot_Mesg)
         self.data_plot(self.plot_params)
 
@@ -108,13 +109,13 @@ class PlotPage(QWidget):
                     self.control_box.appendPlainText("#Are you sure this is numeric data?\n")
                     self.control_box.appendPlainText("\n#Error = " + str(e))
                     self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
-                    self.control_box.appendPlainText(dr.dict2str(self.plot_params))
+                    self.control_box.appendPlainText(tc.dict2str(self.plot_params))
             except KeyError as e:
                 self.control_box.setPlainText("#Sorry I can't find any data named '"+str(e)+"'.\n\n#The full list of data categories you can use are:")
                 for i in Plottable_cols:
                     self.control_box.appendPlainText("\t#"+str(i))
                 self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
-                self.control_box.appendPlainText(dr.dict2str(self.plot_params))
+                self.control_box.appendPlainText(tc.dict2str(self.plot_params))
         else:
             self.control_box.setPlainText("# You at least need the Ydata Parameter, like below:")
             self.control_box.appendPlainText("YData: Balance;\nAct_N:1;")
@@ -123,7 +124,7 @@ class PlotPage(QWidget):
     def act_num_handler(self,act):
         ### If the account number parameters have been set convert them to ints
         if type(act) == list:
-            act = [dr.str2int(i) for i in act] 
+            act = [tc.str2int(i) for i in act] 
         ###
         act = self.not_var(act,act_nums[0]) #If they haven't been set use default settings
         try:
@@ -172,8 +173,8 @@ class PlotCanvas(FigureCanvas):
         try:
             for i in range(len(Yvar)):
                 Data = dict_bank_data[Account_numbers[i]]
-                XData = [Data.loc[:,Xvar[i]].apply(dr.dataPrep) for i in range(self.parent.length_y)]
-                YData = [Data.loc[:,Yvar[i]].apply(dr.dataPrep) for i in range(self.parent.length_y)]
+                XData = [Data.loc[:,Xvar[i]].apply(tc.dataPrep) for i in range(self.parent.length_y)]
+                YData = [Data.loc[:,Yvar[i]].apply(tc.dataPrep) for i in range(self.parent.length_y)]
                 self.whichPlot(array(XData[i]),array(YData[i]),self.ax,default_plots[Yvar[i].lower()])
         except ValueError as e:
             error = e

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QAbstractScrollArea, QSizePolicy, QTableView, QWidge
 from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
-from numpy import shape, column_stack, arange, nan
+from numpy import shape, column_stack, arange
 from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
 from pandas import DataFrame
@@ -18,6 +18,7 @@ from matplotlib.figure import Figure
 # Importing some required variables from the main code
 from __main__ import dict_DATA as dict_bank_data
 from Data import Data as dr
+from Data import Type_Convert as tc
 from Gui import Funcs
 import Gui.StyleSheets as St
 
@@ -53,10 +54,12 @@ class PandasModel(QAbstractTableModel):
             if role == Qt.EditRole:
                 if (rowI, colI) not in Editted_Items:
                     Editted_Items.append((rowI, colI))
-                return dr.TablePrep(self._data[rowI, colI])
+                return tc.tablePrep(self._data[rowI, colI])
                 
             if role == Qt.DisplayRole: # Displays the data
-                return dr.TablePrep(self._data[rowI, colI])
+                if type(tc.tablePrep(self._data[rowI, colI])) != str:
+                    print(type(tc.tablePrep(self._data[rowI, colI])))
+                return tc.tablePrep(self._data[rowI, colI])
             
             if role == Qt.TextColorRole:
                 col = self._cols[colI]
@@ -89,7 +92,7 @@ class PandasModel(QAbstractTableModel):
             row = index.row()
             col = index.column()
             if type(value) == str:
-                self._data[row, col] = dr.TablePrep(value) # Set the data to the newly typed value
+                self._data[row, col] = tc.tablePrep(value) # Set the data to the newly typed value
                 return True
             return False
         
@@ -190,7 +193,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
     # A function to search the data and display the required items
     def SearchAndDisplay(self):
         search_item = self.SearchBar.lineedit.text().lower() #grab the search text
-        Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
+        Account_Number = self.tabbar.tabText(self.tabbar.currentIndex()) #Find the account number
         if search_item == '' or search_item == 'all' or search_item == "search...":
             self.search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
             self.search_data = self.DateSplice(self.search_data, self.SearchBar.date1, self.SearchBar.date2)
@@ -199,8 +202,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             df = self.DateSplice(df, self.SearchBar.date1, self.SearchBar.date2)
             check_boxes = self.SearchBar.CheckBoxes.bxs 
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
-            print(Account_Number)
-            mask = column_stack([df[col].apply(dr.lower).str.contains(search_item, na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
+            mask = column_stack([df[col].apply(tc.lower).str.contains(search_item, na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
             self.search_data = df.loc[mask.any(axis=1)] # Applying the mask to the data.
         
         self.plotCategories(self.search_data) # Plots a little bar chart of the categorised data
@@ -209,9 +211,9 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         
     # Finds averages and sums
     def statFinder(self, data):
-        total_spend = data['Out'].apply(dr.str2float).sum()
+        total_spend = data['Out'].apply(tc.str2float).sum()
         item_count  = len(data)
-        total_in = data['In'].apply(dr.str2float).sum()
+        total_in = data['In'].apply(tc.str2float).sum()
         if item_count > 0:
             first_date = min(data['Date'])
             second_date = max(data['Date'])
@@ -258,7 +260,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             self.setFocus()
         elif e.key() == Qt.Key_Return and any(self.views[i].hasFocus for i in self.views):
             global Editted_Items
-            Account_Number = int(self.tabbar.tabText(self.tabbar.currentIndex())) #Find the account number
+            Account_Number = self.tabbar.tabText(self.tabbar.currentIndex()) #Find the account number
             for i in range(len(Editted_Items)):
                 rowT,colI = Editted_Items[i][0], Editted_Items[i][1]
                 col = colums[colI]
@@ -366,7 +368,7 @@ class Search(QFrame):
     def dataPrep(self, data):
         try:
             data = data.loc[:,['Category','Out']]
-            data['Out'] = data['Out'].apply(dr.dataPrep)
+            data['Out'] = data['Out'].apply(tc.dataPrep)
             data['Out'] = data['Out'].fillna(0)
             data = data.groupby('Category').sum()
             xdata = list(data.index)
@@ -482,7 +484,7 @@ class InfoTable(QAbstractTableModel):
     def data(self, index, role):
         if index.isValid():
             if role == Qt.DisplayRole: # Displays the data
-                return dr.TablePrep(self._data[index.row(),index.column()])
+                return tc.tablePrep(self._data[index.row(),index.column()])
             
             if role == Qt.TextAlignmentRole:
                 return Qt.AlignCenter
@@ -512,7 +514,7 @@ class InfoTable(QAbstractTableModel):
             row = index.row()
             col = index.column()
             if type(value) == str:
-                self._data[row,col] = dr.TablePrep(value) # Set the data to the newly typed value
+                self._data[row,col] = tc.tablePrep(value) # Set the data to the newly typed value
                 return True
             return False
         
