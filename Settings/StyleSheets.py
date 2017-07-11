@@ -92,7 +92,7 @@ StyleSheets['Table']  = """
               border: none;
               background: %s;
         }
-"""%(f.colorChange(table_background_color, 0.95, [0,1,2], 'scale'), table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color)
+"""%(f.colorChange(table_background_color, 0.97, [0,1,2], 'scale'), table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color)
 
 StyleSheets['Tab'] = """ 
         QTabBar::tab 
@@ -167,6 +167,17 @@ StyleSheets['Ok Button'] = """.QPushButton
             border: 0;
         }
 """
+       
+StyleSheets['Combo Box'] = """
+        .QComboBox
+        {
+            background-color: white;
+            color: black;
+            font-size: 14pt;
+            font-weight: bold;
+            border: 0;
+        }
+"""
 
 StyleSheets['Date Buttons'] = """.QPushButton
         {
@@ -219,12 +230,19 @@ StyleSheets['Plot Buttons Account'] = """
             color: black;
             font-weight: light;
             border: 0;
+            font-size: 14pt;
+        }
+        .QPushButton::hover
+        {
+            background-color: #ededed;
         }
         .QPushButton::checked 
         {
+            font-size: 16pt;
             color: black; 
-            background-color: green; 
-            border: none; 
+            background-color: #fafafa; 
+            border: 1px solid black;
+            font-weight: bold;
         }
 """
 
@@ -235,12 +253,19 @@ StyleSheets['Plot Buttons Ydata'] = """
             color: black;
             font-weight: light;
             border: 0;
+            font-size: 13pt;
+        }
+        .QPushButton::hover
+        {
+            background-color: #ededed;
         }
         .QPushButton::checked 
         {
+            font-size: 15pt;
             color: black; 
-            background-color: green; 
-            border: none; 
+            background-color: #ffff00; 
+            border: 1px solid black;
+            font-weight: bold;
         }
 """
 

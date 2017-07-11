@@ -90,13 +90,13 @@ def list_fill(small_list, large_list, Type=0, filler='1'):
              if Type == 0:
                 small_list.append(filler)
              if Type == 1:
-                 small_list.append(i+1)
+                 small_list.append(str(i+1))
              if Type == 2:
                  small_list.append(small_list[int(i%lenS)])
          return small_list         
         
 # Checks to see whether a search parameter (value) is in the dictionary's values. Works for strings, numbers and lists.
-def dict_value_search(value,dictionary):
+def dict_value_search(dictionary, value):
     if type(value) == list or type(value) == set:
         new_vals = [i for i in value]
         for value_index in range(len(value)):
@@ -129,7 +129,7 @@ def save(data,filepath):
 
 # Parses the dictionary data from a txt file into a dictionary.
 # filepath is the filepath of the text file or can be a string that needs parsing. LUC refers to whether the text should be lower or uppercase or capitilised first word.
-def dict_parser(filepath,LUC='c'):
+def dict_parser(filepath, LUC='c'):
     try:
         ### Reading the file containing info on categorising the data
         categories_file = open(filepath,'r')
@@ -151,16 +151,17 @@ def dict_parser(filepath,LUC='c'):
                     CATS = {i.upper().split(':')[0]:[j.upper() for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
         if LUC.lower() == 'c':
                     CATS = {osl.capwords(i).split(':')[0]:[osl.capwords(j) for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
+        if LUC.lower() == 'u':
+                    CATS = {i.split(':')[0]:[j for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
 
     else:
         CATS = {i.split(':')[0]:[j for j in filter(None,i.split(':')[1].split(','))] for i in x} # This maybe is a bit too condensed, it uses a dictionary comphrension to loop through data in categories and extract the key names and the values. It also removes any empty strings from the lists.
     ###
     return CATS
 
-settings = dict_parser("Settings/Settings.txt",'c')
+settings = dict_parser("Settings/Settings.txt",'u')
 cats = dict_parser(categories_filename)
-new_act_names = settings['Account_names']
-
+new_act_names = dict_value_get(settings, 'accountname')
 
 
 # Parses the category exceptions into a list
@@ -202,7 +203,7 @@ def categoriser(item):
     if Desc == 'tan':
         return 'Salary'
 
-    cat = dict_value_search(Desc,cats)
+    cat = dict_value_search(cats, Desc)
 
     if cat == 'Groceries':
         if list_check(Desc,cats['Car']):
@@ -277,7 +278,7 @@ def Initial_Prep(dataframe):
     dataframe = dataframe.sort_values('Date', 0, ascending=False)
     ### Sorting data from different bank accounts
     act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
-    new_act_names = settings['Account_names']
+    global new_act_names 
     list_fill(new_act_names, act_nums, Type=1)
     dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
     for i in dict_DATA: # Deleting the account numbers in the dataframes
@@ -301,7 +302,7 @@ def Data_Read(filepath, paypal=False):
     
         ### Changing the names of the statement columns
         cols = DATA.columns
-        new_cols = dict_value_search(list(cols),names)
+        new_cols = dict_value_search(names, list(cols))
         DATA.columns = new_cols
         ###
     else:

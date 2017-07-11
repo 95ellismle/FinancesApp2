@@ -1,8 +1,7 @@
 from Data import Data as dr
 
-bank_data_folder = dr.settings['Statement_folder_location'][0]
-demo_data = dr.settings['Demo_data_folder'][0]
-
+bank_data_folder = dr.dict_value_get(dr.settings, 'statementfolderloc')[0]
+demo_data = dr.dict_value_get(dr.settings, 'demodatafolder')[0]
 from Data import Random_Data_Creator
 
 
@@ -17,15 +16,15 @@ def create_data(data_create_question):
     else:
         create_data(input("Sorry please type yes or no...\t"))
 
-if dr.settings['Demo'][0] == 'on':
+if dr.settings['Demo'][0].lower() == 'on':
     data_create_question = input("Should I create some random data? [y/n]\t")
     create_data(data_create_question)
     
     bank_statement_folder_path = demo_data
     paypal_paths = demo_data  
 else:
-    bank_statement_folder_path = 'Stats/'
-    paypal_paths = 'Stats/' 
+    bank_statement_folder_path = bank_data_folder
+    paypal_paths = bank_data_folder
         
 dict_DATA, Plottable_cols = dr.Data_Read(bank_statement_folder_path)
 

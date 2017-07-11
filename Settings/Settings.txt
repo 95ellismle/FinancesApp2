@@ -13,12 +13,12 @@
 
 
 
-Demo: on;	# Turns on demo mode
+Demo: off;	# Turns on demo mode
 
-Account_Names: Current, Student; 	# Names for the accounts
+Account Names: Current, Student; 	# Names for the accounts
 
-Statement_folder_location: Stats/; 	# Should have a slash after
+Statement Folder Location: Stats/; 	# Should have a slash after
 
-Demo_data_folder: Data/Demo_Data/;	# Should have a slash after
+Demo Data Folder: Data/Demo_Data/;	# Should have a slash after
 
 

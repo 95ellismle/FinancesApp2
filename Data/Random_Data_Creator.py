@@ -14,14 +14,15 @@ data_length = 2000
 
 
 
-
 def remove_files_from_folder(folder):
-    files = os.listdir(folder)
-    for i in files:
-        os.remove(folder+i)
+    if os.path.isdir(folder):
+        files = os.listdir(folder)
+        for i in files:
+            os.remove(folder+i)
+    else: 
+        print('\n\nSorry the directory in the settings document couldn\'t be found. Please double check this.\nCurrent folder path = \'%s\'\n'%str(folder))
 
-
-
+        
 
 import pandas as pd
 import numpy as np
@@ -41,11 +42,12 @@ def make_data(num_accs):
         return 0
     try:
         num_accs = int(num_accs)
-        print("Okie doke, making "+str(num_accs)+" accounts of fake data!")
+        print("Okie doke, making "+str(num_accs)+" accounts worth of fake data.")
         for i in range(num_accs):
             datamaker(i,demo_data)
-    except:
+    except TypeError:
         make_data(input("Sorry that's not a number I recognise...\n\nPlease enter a number or type 'c' to cancel"))
+        
 
 def datamaker(i, save_filepath): 
     global count
@@ -64,8 +66,10 @@ def datamaker(i, save_filepath):
     date1 = dt.datetime(2016,1,1)
     orig_balance = abs(round(rand.gauss(0,1000),2))
     
-    save_filepath = save_filepath + str(i) + '.csv'
-
+    if os.path.isdir(save_filepath):
+        save_filepath = save_filepath + str(i) + '.csv'
+    else:
+        return None
     data = pd.DataFrame({i:np.zeros(data_length) for i in column_headers})
 
     ## Acount Number
