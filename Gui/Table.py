@@ -19,12 +19,12 @@ from matplotlib.figure import Figure
 from __main__ import dict_DATA as dict_bank_data
 from Data import Data as dr
 from Data import Type_Convert as tc
-from Gui import Funcs
-import Gui.StyleSheets as St
+import Gui.Funcs as fncs
+from Settings import StyleSheets as St
 
 Editted_Items = []
 test_list = ['Bob', 'Aarav', 'Afia', 'Jane']
-act_nums = list(dict_bank_data.keys())
+act_nums = dr.new_act_names
 colums = dict_bank_data[act_nums[0]].columns
 # This is some code modified from https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
 # I found the tableWidget was flagging in terms of performance for even smallish datasets (1,000+).
@@ -152,7 +152,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
             Ifont = QFont(*St.Item_Font)
             self.views[name].setFont(Ifont)
             ###
-            Funcs.AllInOneLayout(self.tabWidget, [self.views[name]]) # add the self.view object to the self.tabWidget object's layout
+            fncs.AllInOneLayout(self.tabWidget, [self.views[name]]) # add the self.view object to the self.tabWidget object's layout
             
             Tfont = QFont(*St.Tab_Font)
             self.myTabs.setFont(Tfont)
@@ -168,7 +168,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         self.SearchBar.setHidden(True)
 
         ### Sorting out the Layout
-        Funcs.AllInOneLayout(self, [self.myTabs, self.SearchBar], VH='h', Stretches=[4, 1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
+        fncs.AllInOneLayout(self, [self.myTabs, self.SearchBar], VH='h', Stretches=[4, 1]) # Add the sidebar_frame and myTabs to the layout of the page horizontally.
         ###
         
         self.show() # show the entire app
@@ -325,7 +325,7 @@ class Search(QFrame):
         xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
         self.CatPlot.plot(xdata, ydata)
         
-        Funcs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.view, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,6,4,12], Align=Qt.AlignTop)
+        fncs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.view, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,6,4,12], Align=Qt.AlignTop)
 
         self.show()
     
@@ -403,7 +403,7 @@ class DateButtons(QFrame):
         self.Date2Button.setStyleSheet(St.StyleSheets['Date Buttons'])
         self.ResetDateButton.setStyleSheet(St.StyleSheets['Date Buttons'])
 
-        Funcs.AllInOneLayout(self, [self.Date1Button, self.Date2Button, self.ResetDateButton], VH='h')
+        fncs.AllInOneLayout(self, [self.Date1Button, self.Date2Button, self.ResetDateButton], VH='h')
         
         self.show()
         
@@ -423,7 +423,7 @@ class CheckBoxes(QFrame):
             self.bxs[name].setChecked(True)
             self.bxs[name].setStyleSheet(St.StyleSheets['Check Boxes'])
         
-        Funcs.AllInOneLayout(self,list(self.bxs.values()),VH='h',Align=Qt.AlignTop)
+        fncs.AllInOneLayout(self,list(self.bxs.values()),VH='h',Align=Qt.AlignTop)
         self.show()        
     
     

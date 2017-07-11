@@ -19,6 +19,12 @@ def up(x):
     else:
         return x
 
+# Strips letters of a string
+def letterStrip(string, letters='abcdefghijklmnopqrstuvwxyz'):
+    for i in letters:
+        string = string.replace(i,'')
+    return string
+
 # Removes any comments (Those with a hash) from some text
 def comment_remove(string):
     x = [i for i in string.split('\n') if i]
@@ -29,7 +35,7 @@ def comment_remove(string):
 
 # Removes Certain Strings from the Description of the Transaction to make it more readable
 def unclutter(string):
-    for i in ['1','2','3','4','5','6','7','8','9','0','(',')','CD']:
+    for i in ['1','2','3','4','5','6','7','8','9','0','(',')','CD', '\\', '/']:
         string = string.replace(i,'')
     return string
 

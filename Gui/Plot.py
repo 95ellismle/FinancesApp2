@@ -1,33 +1,34 @@
 # Imports from PyQt 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QSizePolicy, QWidget, QPlainTextEdit, QFrame, QPushButton, QStackedWidget, QTextEdit
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QPushButton, QLabel, QSizePolicy, QWidget, QFrame, QStackedWidget, QTextEdit
+from PyQt5.QtGui import QFont, QColor
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavBar
 from matplotlib.figure import Figure
-#import matplotlib.pyplot as plt
- 
-# Other Imports
-from numpy import array
+
+from itertools import compress
+import numpy as np
 
 # Imports from other modules
-from __main__ import dict_DATA as dict_bank_data
-from __main__ import Plottable_cols
 from Data import Data as dr
 from Data import Type_Convert as tc
-from Gui.Funcs import AllInOneLayout, dict_value_get
-from Gui import StyleSheets as St
-act_nums = list(dict_bank_data.keys())
+import Gui.Funcs as fncs
+from Settings import StyleSheets as St
+from __main__ import Plottable_cols, dict_DATA
+act_nums = np.array(dr.new_act_names)
+Plottable_cols = np.array(['Balance'] + [i for i in Plottable_cols  if 'ate' not in i.lower() and 'alan' not in i.lower()])
+
 Plot_Mesg = """# This is how to control the plotting.\n
 # Set the data displayed on the x or the y-axis via the XData and YData commands respectively.\n 
 # For Help simply type press Cntrl-H (you may need to click this textbox).
 \nYData:  Balance;
 """
 
-default_plots = {'balance':{'color':'#568203','ls':'-','type':'scatter'},'in':{'color':'#00ff5a','width':3,'type':'bar','edgecolor':None},'out':{'color':'r','width':1.4,'type':'bar','edgecolor':'r'}}
-
+default_plots = {'Balance':{'color':'#efef2f','ls':'-', 'lw':1.5},'In':{'color':'#00ff5a', 'ls':'none', 'lw':2, 'marker':'o'},'Out':{'color':'#ff0000', 'ls':'none', 'lw':2, 'marker':'o'} }
+    
+# Just the code for contructing the main page
 class App_Bit(QWidget):
     def __init__(self):
         super().__init__()
@@ -39,7 +40,7 @@ class App_Bit(QWidget):
         self.FullStack.addWidget(self.PlotPageStackItem)
         self.FullStack.addWidget(self.HelpPageStackItem)
                 
-        AllInOneLayout(self,self.FullStack)
+        fncs.AllInOneLayout(self,self.FullStack)
         self.show()
     
     # Binds Cntrl+Enter to the Ok_Button
@@ -50,7 +51,10 @@ class App_Bit(QWidget):
         elif e.key():
             self.FullStack.setCurrentIndex(0)
            
-        
+            
+            
+           
+# The code for building the page containing the graph
 class PlotPage(QWidget):
  
     def __init__(self):
@@ -62,95 +66,17 @@ class PlotPage(QWidget):
     
     def initUI(self):    
         # The graph widgets
-        self.Graph = PlotCanvas(XData=[1],YData=[1],parent=self)
+        self.Graph = PlotCanvas(False, False, parent=self)
         self.toolbar = NavBar(self.Graph, self)
+        control_panel = ButtonPanel(self)
         
-        text_frame = QFrame() # A frame to put the textbox and the button in
-        text_frame.setStyleSheet(St.StyleSheets['Text Frame'])
-        
-        self.control_box = QPlainTextEdit(self.Plot_Mesg)
-        CFont = QFont(*St.Header_Font)
-        self.control_box.setFont(CFont)
-        self.control_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        OK_Button = QPushButton("Ok")
-        OK_Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        OK_Button.clicked.connect(self.Ok_Button_Click)
-        OK_Button.setStyleSheet(St.StyleSheets['Ok Button'])
-        AllInOneLayout(text_frame, [self.control_box, OK_Button],Stretches=[10,1], Align=Qt.AlignRight)
-        
-        AllInOneLayout(self,[self.Graph, text_frame], Stretches=[4,1], VH='H')
-        
+        fncs.AllInOneLayout(self, [self.Graph, control_panel], Stretches=[4,1], VH='h')
         self.show()
-        
+    
     # A function to connect the OK_Button on the bottom of the plotting page to retrieving the data and plotting it.
     def Ok_Button_Click(self):
-        control_text = self.control_box.toPlainText()
-        self.plot_params = dr.dict_parser(control_text)
-        self.Plot_Mesg = tc.dict2str(self.plot_params)
-        self.control_box.setPlainText(self.Plot_Mesg)
-        self.data_plot(self.plot_params)
+        pass
 
-    # Controls what gets plotted according to the control_box
-    def data_plot(self, plt_prms):
-        if 'Ydata' in plt_prms.keys():
-            try:
-                # Parse the parameters from the text
-                y = dict_value_get(plt_prms, 'Ydata')
-                self.length_y  = len(y)
-                x = dict_value_get(plt_prms, 'Xdata')
-                act = dict_value_get(plt_prms, 'Act')
-                act = self.act_num_handler(act)
-                # Checking whether the parameters have been stated and if not set them to defaults
-                x = self.not_var(x,'Date')
-                
-                e = self.Graph.plot(x,y,act)
-                if e:
-                    self.control_box.setPlainText("#Sorry there is something wrong with the format of the data that you want plotting\n")
-                    self.control_box.appendPlainText("#Are you sure this is numeric data?\n")
-                    self.control_box.appendPlainText("\n#Error = " + str(e))
-                    self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
-                    self.control_box.appendPlainText(tc.dict2str(self.plot_params))
-            except KeyError as e:
-                self.control_box.setPlainText("#Sorry I can't find any data named '"+str(e)+"'.\n\n#The full list of data categories you can use are:")
-                for i in Plottable_cols:
-                    self.control_box.appendPlainText("\t#"+str(i))
-                self.control_box.appendPlainText("\n"+"#"*int(self.control_box.width()/15))
-                self.control_box.appendPlainText(tc.dict2str(self.plot_params))
-        else:
-            self.control_box.setPlainText("# You at least need the Ydata Parameter, like below:")
-            self.control_box.appendPlainText("YData: Balance;\nAct_N:1;")
-                    
-    # Deals with the account number parameter
-    def act_num_handler(self,act):
-        ### If the account number parameters have been set convert them to ints
-        if type(act) == list:
-            act = [tc.str2int(i) for i in act] 
-        ###
-        act = self.not_var(act,act_nums[0]) #If they haven't been set use default settings
-        try:
-            act = [act_nums[i-1] if i < 1000 else i for i in act] # If the chosen number is less than 1000, assume it is an index of the accounts rather than an account number
-        except IndexError:
-            pass  
-        ### If the number doesn't exist in the known accounts then let the user know and use the default account
-        for i in range(len(act)):
-            if act[i] not in act_nums:
-                self.control_box.appendPlainText("# Account number '%s' was not recognised using the default (first) account instead"%str(act[i]))
-                act[i] = act_nums[0]
-        ###
-        return act
-    
-    # A very simple repeated function checking whether a function has any data
-    def not_var(self,var,replace):
-        try:
-            if len(var) < self.length_y:
-                var = var+var*(self.length_y-len(var))
-                return var
-        except:
-            pass
-        if not var:
-            var = [replace]*self.length_y
-        return var
-            
     # Binds Cntrl+Enter to the Ok_Button
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
@@ -158,55 +84,98 @@ class PlotPage(QWidget):
                 self.parent().parent().FullStack.setCurrentIndex(1)
             elif e.key() == Qt.Key_Return:
                 self.Ok_Button_Click()
-            
+
+
+class ButtonPanel(QFrame):
+    
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.account_buttons = 'bob'
+        self.plot_params_buttons = 'bob'
+        self.plotting_accounts = []
+        self.yparams = []
+        self.graph = self.parent().Graph
+        self.initUI()
+                
+        ### Setting the Colour of the app background
+        p = self.palette()
+        b_col = QColor(St.plot_background_color)
+        p.setColor(self.backgroundRole(), b_col)
+        self.setPalette(p) 
+        self.show()
+    
+    def initUI(self):
+        
+        account_label = QLabel("Account:")
+        title_font = QFont(*St.Title_Font)
+        account_label.setFont(title_font)
+        account_label.setStyleSheet(St.StyleSheets['QLabel'])
+        
+        accounts_frame = QFrame(self);
+        self.account_buttons = [QPushButton(i, self) for i in act_nums]
+        [i.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) for i in self.account_buttons]
+        [i.setCheckable(True) for i in self.account_buttons]
+        [i.setStyleSheet(St.StyleSheets['Plot Buttons Account']) for i in self.account_buttons]
+        [i.clicked.connect(self.onAccountClick) for i in self.account_buttons]
+        fncs.AllInOneLayout(accounts_frame, self.account_buttons, VH='h', Align=Qt.AlignTop, Stretches=[1]+[1 for i in self.account_buttons])
+        
+        plot_params_frame = QFrame(self)
+        self.plot_params_buttons = [QPushButton(i, self) for i in Plottable_cols]
+        [i.setStyleSheet(St.StyleSheets['Plot Buttons Ydata']) for i in self.plot_params_buttons]
+        [i.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) for i in self.plot_params_buttons]
+        [i.setCheckable(True) for i in self.plot_params_buttons]
+        [i.clicked.connect(self.onPlotParameterClick) for i in self.plot_params_buttons]
+        fncs.AllInOneLayout(plot_params_frame, self.plot_params_buttons, VH='h', Align=Qt.AlignTop)
+        
+        ydata_label = QLabel("YData:")
+        
+        spacer = QLabel("")
+
+        fncs.AllInOneLayout(self, [account_label, accounts_frame, ydata_label, plot_params_frame, spacer], VH='V', Align=Qt.AlignTop, Stretches=[1,1,1,1,10])
+    
+    def onAccountClick(self):
+        x = [i.isChecked() for i in self.account_buttons]
+        self.plotting_accounts = list(compress(act_nums,x))
+        self.graph.plotting(self.plotting_accounts, self.yparams)
+        
+    def onPlotParameterClick(self):
+        x = [i.isChecked() for i in self.plot_params_buttons]
+        self.yparams = list(compress(Plottable_cols, x))
+        self.graph.plotting(self.plotting_accounts, self.yparams)
+        
+
+# The code that holds the plotting figure and does all the plotting.    
 class PlotCanvas(FigureCanvas):
  
-    def __init__(self,XData, YData, parent=None):
+    def __init__(self, Accounts, YParams, parent=None):
         self.parent = parent
         self.fig = self.make_figure()
         self.ax = self.fig.add_subplot(111)
-        self.plot(['Date'],['Balance'],[act_nums[0]])
+        self.plotting(Accounts, YParams)
         
-    def plot(self,Xvar, Yvar, Account_numbers, Ls='-', Color='g'):
-        error = False
-        self.ax.cla()
-        try:
-            for i in range(len(Yvar)):
-                Data = dict_bank_data[Account_numbers[i]]
-                XData = [Data.loc[:,Xvar[i]].apply(tc.dataPrep) for i in range(self.parent.length_y)]
-                YData = [Data.loc[:,Yvar[i]].apply(tc.dataPrep) for i in range(self.parent.length_y)]
-                self.whichPlot(array(XData[i]),array(YData[i]),self.ax,default_plots[Yvar[i].lower()])
-        except ValueError as e:
-            error = e
-            print("Could Not Plot Data, Wrong Types were given")
-            print("XData = \n",XData,"\nX-Type = ",type(XData[0]))
-            print("YData = \n",YData,"\nY-Type = ",type(YData[0]))
-        self.ax.grid(color='#b0b0b0', lw=0.5)
-        self.ax.spines['bottom'].set_visible(False)
-        self.ax.spines['left'].set_visible(False)
-        self.ax.tick_params(labelsize=15)
-        try:        
-            self.draw()
-        except ValueError as e:
-            error = e
-        return error
-
-    def whichPlot(self,xdata,ydata,axis,plt_prms=False):
-        if plt_prms:
-            Type = dict_value_get(plt_prms, 'type')
-            color = dict_value_get(plt_prms, 'color')
-            if Type.lower() == 'scatter':
-                ls = dict_value_get(plt_prms, 'ls')
-                axis.plot(xdata,ydata,color=color,ls=ls)
-            elif Type.lower() == 'bar':
-                edgecolor = dict_value_get(plt_prms, 'edgec')
-                width = dict_value_get(plt_prms, 'width')
-                axis.bar(xdata,ydata,color=color,edgecolor=edgecolor,width=width)
-            else:
-                return "# Plot Type, %s, Not Recognised"%str(Type)
+    def plotting(self, Accounts, YParams):
+        if Accounts and YParams:
+            self.ax.cla()
+            for acc in Accounts:
+                data = dict_DATA[acc]
+                for col in data.columns:
+                    data[col] = data[col].apply(tc.dataPrep)
+                for yparam in YParams:
+                    col, ls, lw, marker =self.whichPlot(yparam, Accounts, acc)
+                    ydat = data[yparam]
+                    self.ax.plot(data['Date'], ydat, color=col, ls=ls, lw=lw, marker=marker)
         else:
-            axis.plot(xdata,ydata,'k.')
-            
+            self.ax.cla()
+        self.draw()
+        
+    def whichPlot(self, YParams, Accounts, acc):
+        col = dr.dict_value_get(default_plots[YParams],'color')
+        col =  fncs.colorChange(col, 1-0.2*Accounts.index(acc), [0,1,2], Type='scale', output='hex')
+        ls = dr.dict_value_get(default_plots[YParams],'ls')
+        lw = dr.dict_value_get(default_plots[YParams],'lw')+Accounts.index(acc)*0.25
+        marker = dr.dict_value_get(default_plots[YParams],'marker')
+        return col,ls,lw, marker
+    
     def make_figure(self):
         fig = Figure(facecolor='white')
         self.axes = fig.add_subplot(111)
@@ -218,13 +187,33 @@ class PlotCanvas(FigureCanvas):
         fig.subplots_adjust(0.07,0.05,0.97,0.95)
         return fig
 
-    # Binds Cntrl+Enter to the Ok_Button
+    # Binds Cntrl+H to the switching to the help page
     def keyPressEvent(self, e):
         if e.modifiers() == Qt.ControlModifier:
             if e.key() == Qt.Key_H:
                 self.parent().parent().parent().FullStack.setCurrentIndex(1)
     
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+# The help page (simply displays some HTML)
 class HelpPage(QWidget):
  
     def __init__(self):
@@ -244,9 +233,28 @@ class HelpPage(QWidget):
         self.Help_Box.setStyleSheet(St.StyleSheets['Text Frame'])
         self.Help_Box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
                 
-        AllInOneLayout(self,self.Help_Box)
+        fncs.AllInOneLayout(self,self.Help_Box)
     
     # Binds Cntrl+Enter to the Ok_Button
     def keyPressEvent(self, e):
         if e.key():
             self.parent().parent().FullStack.setCurrentIndex(0)
+            
+            
+    
+'''
+text_frame = QFrame() # A frame to put the textbox and the button in
+text_frame.setStyleSheet(St.StyleSheets['Text Frame'])
+
+self.control_box = QPlainTextEdit(self.Plot_Mesg)
+CFont = QFont(*St.Header_Font)
+self.control_box.setFont(CFont)
+self.control_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+OK_Button = QPushButton("Ok")
+OK_Button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+OK_Button.clicked.connect(self.Ok_Button_Click)
+OK_Button.setStyleSheet(St.StyleSheets['Ok Button'])
+fncs.AllInOneLayout(text_frame, [self.control_box, OK_Button],Stretches=[10,1], Align=Qt.AlignRight)
+
+fncs.AllInOneLayout(self,[self.Graph, text_frame], Stretches=[4,1], VH='H')
+'''

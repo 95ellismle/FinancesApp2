@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
+from Settings import StyleSheets as St
 
 class SettingsPage(QWidget):
     

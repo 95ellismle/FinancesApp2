@@ -5,7 +5,7 @@ An app designed to help with managing personal finances. The data in this video 
 
 To use the app you will either have to create some pseudo-data using the data creator code or save your bank data in a folder name "Stats" in the same directory as the main.py file. Currently the app only works with data from TSB bank accounts. However, other banks may be added later.
 
-To create pseudo-data simply use the command "python3 Random_Data_Creator.py" and then in the "Settings.txt" file (in the Setting folder) set the variable demo to "on".
+To create pseudo-data simply set the variable 'demo' to 'on' in the settings file. A wizard will then help you either create new data or use current random data.
 
 Whether using demo data or your own bank data the app has the same set of features. These are shown below, the check boxes without ticks are under development.
 - [x] Plot and tabulate data

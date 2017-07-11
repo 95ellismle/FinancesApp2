@@ -27,6 +27,7 @@ date_format = '%d/%m/%Y'
 
 ### Plotting Page Styles
 
+plot_background_color = '#ffffff'
 Command_Font = (font,16)
 
 ###
@@ -91,12 +92,12 @@ StyleSheets['Table']  = """
               border: none;
               background: %s;
         }
-"""%(f.rgb2str(f.changeColor(f.hex2RGB(table_background_color), -10, [0,1,2])), table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color)
+"""%(f.colorChange(table_background_color, 0.95, [0,1,2], 'scale'), table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color, table_background_color)
 
 StyleSheets['Tab'] = """ 
         QTabBar::tab 
         {
-                background-color: #eeeeee;  
+                background-color: %s;  
                 height: 45px; 
                 width: 160px;
         }
@@ -121,7 +122,8 @@ StyleSheets['Tab'] = """
                 font-weight: bold;
                 color: black;
         }
-        """
+        """%background_colour
+        
 StyleSheets['Info Table']  = """
         .QTableView
         {   
@@ -148,12 +150,6 @@ StyleSheets['Info Table']  = """
         }
 """ 
        
-StyleSheets['Sidebar'] = """.QFrame 
-        {
-            background-color: white;
-        }
-"""
-
 StyleSheets['Ok Button'] = """.QPushButton
         {
             background-color: green;
@@ -216,6 +212,38 @@ StyleSheets['Help Frame'] = """.QLabel
         }
 """
 
+StyleSheets['Plot Buttons Account'] = """
+        .QPushButton
+        {
+            background-color: white;
+            color: black;
+            font-weight: light;
+            border: 0;
+        }
+        .QPushButton::checked 
+        {
+            color: black; 
+            background-color: green; 
+            border: none; 
+        }
+"""
+
+StyleSheets['Plot Buttons Ydata'] = """
+        .QPushButton
+        {
+            background-color: white;
+            color: black;
+            font-weight: light;
+            border: 0;
+        }
+        .QPushButton::checked 
+        {
+            color: black; 
+            background-color: green; 
+            border: none; 
+        }
+"""
+
 StyleSheets['Search'] = """.QLineEdit
         {
             background-color: #dfdfff;
@@ -239,6 +267,13 @@ StyleSheets['Check Boxes'] = """.QCheckBox
         }
 """
 
+StyleSheets['QLabel'] = """
+    .QLabel
+    {
+         width=100;
+    }
+"""
+
 for i in range(number_of_buttons_on_sidebar):
     StyleSheets['Button'+str(i)] = """
         .QPushButton
@@ -255,4 +290,9 @@ for i in range(number_of_buttons_on_sidebar):
             color: darkslategrey;
             font-size: 27px;
             font-weight: 900;
-        }"""%(sidebar_button_colour)
+        }
+        .QPushButton::checked
+        {
+                font-weight: bold;
+        }
+        """%(sidebar_button_colour)

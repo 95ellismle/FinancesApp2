@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from numpy.ma import masked_where, compressed
 from numpy import abs
 
+from Data import Strings as st
+
 # A function to place objects in a layout.
 # Align decideds the alignment of the layout, the Margins decide the margins and spacing decides the spacing between widgets.
 # VH decides whether the widgets are aligned vertically or horizontally. Object is the parent widget, widgets are the children.
@@ -40,14 +42,6 @@ def AllInOneLayout(Parent,children,Stretches=[1], VH='V', Align=False, Margins=[
         
     return layout
 
-# Just tries to get the values associated with a dictionary, if the key isn't there it silently ignores it and returns None
-def dict_value_get(dictionary,value):
-    value = [i for i in dictionary.keys() if value in i]
-    try:
-        return dictionary[value[0]]
-    except IndexError:
-        return None
-
 def aboveThreshold(data, threshold):
      if type(data) == list:
          new_data = []
@@ -60,18 +54,53 @@ def aboveThreshold(data, threshold):
          data = masked_where(abs(data) < threshold, data)
          data = compressed(data)
          return data
-
-
+        
 def hex2RGB(HEX):
     h = HEX.lstrip('#')
-    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+    try:
+        return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+    except ValueError:
+        return st.letterStrip(HEX)
 
+def rgb2hex(rgb):
+    if type(rgb) == str:
+        rgb = st.letterStrip(rgb, "abcdefghijklmnopqrstuvwxyz()").split(',')
+        rgb = [int(i) for i in rgb]     
+    if any(type(i) == float for i in rgb):
+        rgb = [int(i) for i in rgb]
+    hex = "#{:02x}{:02x}{:02x}".format(*rgb)
+    return hex
 
-def changeColor(rgb, amount, rgb_indices):
+def shiftCol(rgb, amount, rgb_indices, Type='add'):
     rgb = list(rgb)
     for i in rgb_indices:
-        rgb[i] = rgb[i] + amount
+        if Type.lower() == 'add':
+            rgb[i] += amount
+        elif Type.lower() == 'scale':
+            rgb[i] *= amount
+            
+        if rgb[i] < 0:
+            rgb[i] = 0
+        elif rgb[i] > 255:
+            rgb[i] = 255
     return rgb
 
 def rgb2str(rgb):
-    return 'rgb('+str(rgb[0])+','+str(rgb[1])+','+str(rgb[2])+')'
+    string = 'rgb('
+    for i in range(3):
+        string += str(int(rgb[i]))+','
+    string = string.rstrip(',')
+    string += ')'
+    return string
+
+def colorChange(col, amount, rgb_indices, Type='add', output='rgb'):
+    col = hex2RGB(col)
+    col = shiftCol(col, amount, rgb_indices, Type)
+    if output.lower() == 'rgb':
+        return rgb2str(col)    
+    if output.lower() == 'hex':
+        return rgb2hex(col)
+    
+    
+    
+    

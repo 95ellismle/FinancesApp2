@@ -7,6 +7,7 @@ import string as osl
 from Data import Type_Convert as tc
 from Data import Strings as st
 
+pd.options.mode.chained_assignment = None  # default='warn'
 ### Telling the code where everything is. This needs to be above the Data module import as these are used in that module.
 categories_filename = '/home/ellismle/Documents/Other/Finances_app2/Settings/Categories.txt'
 col_head_filepath = '/home/ellismle/Documents/Other/Finances_app2/Settings/Data_Headers.txt'
@@ -35,8 +36,34 @@ def data_clean(filepaths):
             print("I couldn't read the files. They seem to be stored in the wrong format.\nPlease check that the statement data is in csv format.\n")
             print("Rogue file = ",file,"\nError = ",e)
     
- 
-    
+# Searches for old keys and if it finds them changes them to new_keys
+def dict_key_change(dictionary, old_keys, new_keys):
+    for i in range(len(old_keys)):
+        try:
+            ydata_key = dict_key_get(dictionary, old_keys[i])
+            dictionary[new_keys[i]] = dictionary.pop(ydata_key)
+        except KeyError:
+            pass
+    return {i:dictionary[i] for i in dictionary if i in new_keys}
+
+# Just tries to get the values associated with a dictionary, if the key isn't there it silently ignores it and returns None
+def dict_value_get(dictionary, key1, acceptable_values=False):
+    key = dict_key_get(dictionary, key1)
+    try:
+        value = dictionary[key]
+        value = multi_list_check(value, acceptable_values)
+        return value
+    except (IndexError, KeyError):
+        return None
+
+# Finds a key close to the one asked for
+def dict_key_get(dictionary, search):
+        try:
+            key = [i for i in dictionary.keys() if search.lower() in i.lower()][0]
+            return key
+        except:
+            None
+            
 # Checks if a substring is in a list of strings and if it is returns the list item
 def list_check(search_item, LIST):
     for list_item in LIST:
@@ -44,7 +71,29 @@ def list_check(search_item, LIST):
             return (True,list_item)
     return False
 
-          
+# Returns any items in list1 that are substrings of items in list2
+def multi_list_check(list1, list2):
+    if type(list1) == list and type(list2) == list:
+        new_list1 = []
+        for i in list1:
+            val = list_check(i, list2)
+            if val:
+                new_list1.append(val[1])
+        return new_list1
+    else:
+        return list1
+
+# Fills a smaller list with a value specified by the filler
+def list_fill(small_list, large_list, Type=0, filler='1'):
+         lenS, lenL = len(small_list), len(large_list)
+         for i in range(lenS, lenL):
+             if Type == 0:
+                small_list.append(filler)
+             if Type == 1:
+                 small_list.append(i+1)
+             if Type == 2:
+                 small_list.append(small_list[int(i%lenS)])
+         return small_list         
         
 # Checks to see whether a search parameter (value) is in the dictionary's values. Works for strings, numbers and lists.
 def dict_value_search(value,dictionary):
@@ -110,7 +159,7 @@ def dict_parser(filepath,LUC='c'):
 
 settings = dict_parser("Settings/Settings.txt",'c')
 cats = dict_parser(categories_filename)
-
+new_act_names = settings['Account_names']
 
 
 
@@ -187,17 +236,6 @@ def categoriser(item):
     else:
         return cat
     
-# Fills a smaller list with a value specified by the filler
-def list_fill(small_list, large_list, filler='1', Type=0):
-         lenS, lenL = len(small_list), len(large_list)
-         for i in range(lenS, lenL):
-             if Type == 0:
-                small_list.append(filler)
-             if Type == 1:
-                 small_list.append(i+1)
-             if Type == 2:
-                 small_list.append(small_list[int(i%lenS)])
-         return small_list
 
 # Reads a group of data files and groups them into 1 dataframe.
 def data_read(filepaths):
@@ -233,15 +271,14 @@ def find_paypal_files(folderpath):
 # Converts 1 large dataframe containing data from multiple accounts to a dictionary of dataframes with each key only containing 1 account's data.
 def Initial_Prep(dataframe):
     dataframe = dataframe.drop_duplicates()
-    dataframe['Description'] = dataframe['Description'].apply(st.up)
+    dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.up)
     dataframe = dataframe.fillna('')
-    dataframe['Description'] = dataframe['Description'].apply(st.unclutter)
+    dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.unclutter)
     dataframe = dataframe.sort_values('Date', 0, ascending=False)
     ### Sorting data from different bank accounts
-    act_nums = dataframe['Acc Num'].unique() # Finding the account numbers
+    act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
     new_act_names = settings['Account_names']
     list_fill(new_act_names, act_nums, Type=1)
-    [new_act_names[i] for i in range(len(new_act_names))] # This piece of code for some reason stops preserves the order of the dictionary? 
     dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
     for i in dict_DATA: # Deleting the account numbers in the dataframes
         dict_DATA[i] = dict_DATA[i].drop([col for col in dataframe.columns if 'Acc' in col], axis=1)

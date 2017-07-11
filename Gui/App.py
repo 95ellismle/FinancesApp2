@@ -4,7 +4,7 @@ from PyQt5.QtGui import QColor
 
 # Importing Modules from the App
 from Gui import Table, Plot, Settings, Funcs, About
-import Gui.StyleSheets as St
+from Settings import StyleSheets as St
 # The Main Window... This Widget will be the main window.
 # Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
 
@@ -58,11 +58,11 @@ class App(QWidget):
     def sideBar(self):
         sidebar_frame = QFrame()
         sidebar_frame.setMinimumWidth(110)
-        sidebar_frame.setStyleSheet(St.StyleSheets['Sidebar'])
+        #sidebar_frame.setStyleSheet(St.StyleSheets['Sidebar'])
         
         button_titles = ['Data\nTables','Plotting','About','Settings']
         button_titles = fill_a_list(button_titles, '', St.number_of_buttons_on_sidebar-len(button_titles))
-        buttons = []   
+        self.buttons = []   
         but_funcs = [self.onTabButton, self.onPlotButton, self.onAboutButton, self.onSettingsButton ]
         but_funcs = fill_a_list(but_funcs, self.emptyFunc, St.number_of_buttons_on_sidebar-len(but_funcs))
         for i in range(St.number_of_buttons_on_sidebar):
@@ -70,9 +70,10 @@ class App(QWidget):
             button.setStyleSheet(St.StyleSheets['Button%i'%i])
             button.clicked.connect(but_funcs[i])
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            buttons.append(button)
+            button.setCheckable(True)
+            self.buttons.append(button)
             
-        Funcs.AllInOneLayout(sidebar_frame, buttons, VH='V')# add button and button2 to the sidebar_frame vertically, aligning them at the top.
+        Funcs.AllInOneLayout(sidebar_frame, self.buttons, VH='V')# add button and button2 to the sidebar_frame vertically, aligning them at the top.
                 
         #frame_layout.setSizeLayout(QSizePolicy.Expanding, QSizePolicy.Expanding)        
         return sidebar_frame

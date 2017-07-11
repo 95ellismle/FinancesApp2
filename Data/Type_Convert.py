@@ -8,7 +8,7 @@ Created on Thu Jul  6 16:02:03 2017
 
 import pandas as pd
 import datetime as dt
-from Gui import StyleSheets as St
+from Settings import StyleSheets as St
 
 
 # Converts a dictionary to the format used in the settings files.
@@ -62,7 +62,7 @@ def str2int(string):
     try:
         return int(string)
     except:
-        return False
+        return string
 
 # converts a string to a float
 def str2float(i):
@@ -87,7 +87,7 @@ def tablePrep(item):
 # Convert a string to a float and ignore exceptions
 def dataPrep(i):
     try:
-        return round(float(i),2)
+        return float(i)
     except ValueError:
         try:
             return pd.to_datetime(i,format=St.date_format)

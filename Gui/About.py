@@ -9,7 +9,7 @@ Created on Mon Jul  3 14:12:43 2017
 from PyQt5.QtWidgets import QTextEdit, QWidget, QSizePolicy
 from PyQt5.QtGui import QFont
 
-from Gui import StyleSheets as St
+from Settings import StyleSheets as St
 from Gui.Funcs import AllInOneLayout
 
 
