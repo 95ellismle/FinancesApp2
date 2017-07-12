@@ -32,7 +32,7 @@ import os
 from Data import Data as dr
 
 
-from __main__ import demo_data
+from Data.Data import demo_data
 
 cats = dr.dict_parser(categories_filename)
 count = 0

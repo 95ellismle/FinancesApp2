@@ -70,6 +70,13 @@ def str2float(i):
         return float(i)
     except:
         return None
+
+# converts a float to a string
+def float2str(i):
+    try:
+        return str(i)
+    except:
+        return None   
     
 # Converts a datetime to a string for displaying the dataframe data
 def tablePrep(item):

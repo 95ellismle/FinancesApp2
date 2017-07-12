@@ -15,3 +15,4 @@ deb;endsleigh insuranc;2125.36;;48.78;2017-03-15 00:00:00|Rent, Bills & Fines
 deb;home bargains oakw;1597.51;;0.78;2017-07-03 00:00:00|High Street
 deb;city of york- payb;2002.22;;7.4;2017-06-19 00:00:00|Car
 fpi;liam obrien from liam obrien lzqkjyxvrjxk jul;1939.39;2.5;;2017-07-03 00:00:00|Subscriptions
+dd;prezzybox.com ltd (payp);2.32;;13.9;2016-04-27 00:00:00|Online Shopping

@@ -3,9 +3,11 @@
 import pandas as pd
 import os
 import string as osl
+import datetime as dt
 
 from Data import Type_Convert as tc
 from Data import Strings as st
+from Settings import StyleSheets as Ss
 
 pd.options.mode.chained_assignment = None  # default='warn'
 ### Telling the code where everything is. This needs to be above the Data module import as these are used in that module.
@@ -162,7 +164,8 @@ def dict_parser(filepath, LUC='c'):
 settings = dict_parser("Settings/Settings.txt",'u')
 cats = dict_parser(categories_filename)
 new_act_names = dict_value_get(settings, 'accountname')
-
+bank_data_folder = dict_value_get(settings, 'statementfolderloc')[0]
+demo_data = dict_value_get(settings, 'demodatafolder')[0]
 
 # Parses the category exceptions into a list
 def exceptionparser(filepath):
@@ -177,7 +180,119 @@ def exceptionparser(filepath):
     exceptions = [i[0].replace(" ","") for i in LIST]
     new_cat = [i[1] for i in LIST]
     return exceptions,new_cat
-    
+
+# Reads a group of data files and groups them into 1 dataframe.
+def data_read_and_concat(filepaths):
+    if type(filepaths) == list:
+        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
+    if type(filepaths) == str:
+        files = [i for i in os.listdir(filepaths) if '.csv' in i]
+        data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
+    return data
+
+def find_paypal_files(folderpath):
+    ### Finding the Bank Statement Files and Paypal files
+    poss_datafiles = os.listdir(folderpath)
+    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
+    datafilepaths = [i for i in poss_datafiles if 'payp' in i]   # finding the non-paypal and therefore bank files
+    ###
+    return datafilepaths
+
+def paypal_data_read(folder):
+    paypal_filepaths = find_paypal_files(folder)
+    if len(paypal_filepaths):
+        paypal_data = data_read_and_concat(paypal_filepaths)   # Reads the paypal files and collates into 1 dataframe.
+        paypal_data['Date'] = pd.to_datetime(paypal_data['Date'], format=Ss.date_format)
+        paypal_data = paypal_data.sort_values(by='Date', ascending=False)
+        for col in paypal_data.columns:
+            if any(j.lower() in col.lower() for j in ['receip', 'stat', 'rrency', 'time']):
+                paypal_data = paypal_data.drop(col, axis=1)
+        paypal_data[' Amount'] = paypal_data[' Amount'].apply(str)
+        return paypal_data
+    else:
+        return None
+
+paypal_data = paypal_data_read(bank_data_folder)
+
+def dataframe_date_splice(data, date1, date2):
+    data = data.loc[data['Date'] > date1]
+    data = data.loc[data['Date'] < date2]
+    return data
+
+
+def find_files(folderpath):
+    ### Finding the Bank Statement Files and Paypal files
+    poss_datafiles = os.listdir(folderpath)
+    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
+    datafilepaths = [i for i in poss_datafiles if 'payp' not in i]   # finding the non-paypal and therefore bank files
+    ###
+    return datafilepaths
+
+# Converts 1 large dataframe containing data from multiple accounts to a dictionary of dataframes with each key only containing 1 account's data.
+def Initial_Prep(dataframe):
+    dataframe = dataframe.drop_duplicates()
+    dataframe = dataframe.fillna('')
+    dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.unclutter)
+    dataframe = dataframe.sort_values('Date', 0, ascending=False)
+    ### Sorting data from different bank accounts
+    act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
+    global new_act_names 
+    list_fill(new_act_names, act_nums, Type=1)
+    dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
+    for i in dict_DATA: # Deleting the account numbers in the dataframes
+        dict_DATA[i] = dict_DATA[i].drop([col for col in dataframe.columns if 'Acc' in col], axis=1)
+    return dict_DATA, new_act_names
+
+def paypal_cross_ref(item, days_before):
+    item = item.lower()
+    Desc, Bal, In, Out, Date = item.split(';')
+    Out = tc.str2float(Out)
+    if 'payp' in Desc:
+        date1 = tc.str2date(Date) - dt.timedelta(days_before)
+        date2 = tc.str2date(Date) + dt.timedelta(1)
+        possible_paypal_data = dataframe_date_splice(paypal_data, date1, date2)
+        possible_paypal_data[' Amount'] = possible_paypal_data[' Amount'].apply(tc.str2float)
+        if Out:
+            possible_paypal_item = possible_paypal_data.loc[possible_paypal_data[' Amount'] == -tc.str2float(Out)]
+            unique_entries = possible_paypal_item[' Name'].unique()
+            if len(unique_entries) > 1:
+                unique_entries = [i for i in unique_entries if all(j not in i.lower() for j in ['payp', 'credit card']) ]
+                if len(unique_entries) > 1:
+                    print("\n\nDescription = ", Desc, 
+                          "\nDate = ", Date,
+                          "\nIn = ", In,
+                          "\nOut = ", Out, 
+                          "\nPossible Paypal Item:\n", unique_entries)
+                else:
+                    if len(unique_entries):
+                        return unique_entries[0] + ' (payp)'
+            else:
+                if len(unique_entries):
+                    return unique_entries[0] + ' (payp)'
+                else:
+                    new_poss_paypal_item = possible_paypal_data.loc[possible_paypal_data[' Amount'] == Out]
+                    if len(new_poss_paypal_item):
+                        if new_poss_paypal_item[' Name'].values[0].replace(' ','').lower() == 'bankaccount':
+                            balance = tc.str2float(new_poss_paypal_item[' Balance'].values[0])
+                            possible_paypal_data[' Amount'] = possible_paypal_data[' Amount'].apply(tc.str2float)
+                            possible_items = possible_paypal_data.loc[possible_paypal_data[' Amount'] == -balance][' Name'].unique()
+                            if len(possible_items) == 1:
+                                return possible_items[0]
+                            else:
+                                return paypal_cross_ref(item, 21)
+                                print("\n\nDescription = ", Desc, 
+                                      "\nDate = ", Date,
+                                      "\nIn = ", In,
+                                      "\nOut = ", Out,
+                                      "\nPossible Paypal Data:\n", possible_paypal_data)
+                                return "Non"
+                    return Desc
+        else:
+            return "Paypal Transfer"
+    else:
+        return Desc
+
+        
 
 exceptions = exceptionparser('Settings/Exceptions.txt')
 # Categorises the data
@@ -187,14 +302,14 @@ def categoriser(item):
         ind = exceptions[0].index(item.replace(" ",""))
         return exceptions[1][ind]
     Type, Desc, Bal, In, Out, Date = item.split(';')
-
+        
     if Type == 'cpt':
         return 'Cash'
     elif Type == 'bgc':
         return 'Salary'
     elif Type == 'so':
         return 'Rent, Bills & Fines'
-    elif Type == 'tfr':
+    elif Type == 'tfr' or 'transfer' in Desc:
         return 'Transfer'
     elif Type == 'dep':
         return 'Bank Deposit'
@@ -236,54 +351,6 @@ def categoriser(item):
             return 'Bars and Pubs'
     else:
         return cat
-    
-
-# Reads a group of data files and groups them into 1 dataframe.
-def data_read(filepaths):
-    if type(filepaths) == list:
-        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
-    if type(filepaths) == str:
-        files = [i for i in os.listdir(filepaths) if '.csv' in i]
-        data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
-    return data
-
-def Paypal_Integration(paypal_filepaths):
-    if len(paypal_filepaths):
-        paypal_data = data_read(paypal_filepaths)   # Reads the paypal files and collates into 1 dataframe.
-        
-    return paypal_data
-
-def find_files(folderpath):
-    ### Finding the Bank Statement Files and Paypal files
-    poss_datafiles = os.listdir(folderpath)
-    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
-    datafilepaths = [i for i in poss_datafiles if 'payp' not in i]   # finding the non-paypal and therefore bank files
-    ###
-    return datafilepaths
-
-def find_paypal_files(folderpath):
-    ### Finding the Bank Statement Files and Paypal files
-    poss_datafiles = os.listdir(folderpath)
-    poss_datafiles = [folderpath + i for i in poss_datafiles if '.csv' in i]      # removing any non csv files
-    datafilepaths = [i for i in poss_datafiles if 'payp' in i]   # finding the non-paypal and therefore bank files
-    ###
-    return datafilepaths
-
-# Converts 1 large dataframe containing data from multiple accounts to a dictionary of dataframes with each key only containing 1 account's data.
-def Initial_Prep(dataframe):
-    dataframe = dataframe.drop_duplicates()
-    dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.up)
-    dataframe = dataframe.fillna('')
-    dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.unclutter)
-    dataframe = dataframe.sort_values('Date', 0, ascending=False)
-    ### Sorting data from different bank accounts
-    act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
-    global new_act_names 
-    list_fill(new_act_names, act_nums, Type=1)
-    dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
-    for i in dict_DATA: # Deleting the account numbers in the dataframes
-        dict_DATA[i] = dict_DATA[i].drop([col for col in dataframe.columns if 'Acc' in col], axis=1)
-    return dict_DATA, new_act_names
 
 # Reads the data
 def Data_Read(filepath, paypal=False):
@@ -293,9 +360,9 @@ def Data_Read(filepath, paypal=False):
         else:
             datafilepaths = find_paypal_files(filepath)
         data_clean(datafilepaths)                 # Permanently removes sensitive/useless data from bank statements
-        DATA = data_read(datafilepaths)       # Reads the statement files and collates them into 1 dataframe
+        DATA = data_read_and_concat(datafilepaths)       # Reads the statement files and collates them into 1 dataframe
     else:
-        DATA = data_read('./')
+        DATA = data_read_and_concat('./')
         
     if len(DATA):
         names = dict_parser(col_head_filepath) #Grabbing the data headers
@@ -322,6 +389,9 @@ def Data_Read(filepath, paypal=False):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
+            for col in ['Balance','In','Out','Date']:
+                dict_DATA[i]['Description'] = dict_DATA[i]['Description'] + ';' + dict_DATA[i][col].apply(tc.string)
+            dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(paypal_cross_ref, args=(7,))        
             dict_DATA[i]['Category'] = dict_DATA[i]['Type']
             for col in ['Description','Balance','In','Out','Date']:
                 dict_DATA[i]['Category'] = dict_DATA[i]['Category'] + ';' + dict_DATA[i][col].apply(tc.string)

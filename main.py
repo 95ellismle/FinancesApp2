@@ -1,9 +1,5 @@
 from Data import Data as dr
-
-bank_data_folder = dr.dict_value_get(dr.settings, 'statementfolderloc')[0]
-demo_data = dr.dict_value_get(dr.settings, 'demodatafolder')[0]
 from Data import Random_Data_Creator
-
 
 def create_data(data_create_question):
     if 'y' in data_create_question.lower():
@@ -20,14 +16,13 @@ if dr.settings['Demo'][0].lower() == 'on':
     data_create_question = input("Should I create some random data? [y/n]\t")
     create_data(data_create_question)
     
-    bank_statement_folder_path = demo_data
-    paypal_paths = demo_data  
+    bank_statement_folder_path = dr.demo_data
+    paypal_paths = dr.demo_data  
 else:
-    bank_statement_folder_path = bank_data_folder
-    paypal_paths = bank_data_folder
+    bank_statement_folder_path = dr.bank_data_folder
+    paypal_paths = dr.bank_data_folder
         
 dict_DATA, Plottable_cols = dr.Data_Read(bank_statement_folder_path)
-
 
 
 from Gui import App
@@ -39,5 +34,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App.App()
     sys.exit(app.exec_())
-    
-    

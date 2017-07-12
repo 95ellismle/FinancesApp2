@@ -8,6 +8,7 @@ To use the app you will either have to create some pseudo-data using the data cr
 To create pseudo-data simply set the variable 'demo' to 'on' in the settings file. A wizard will then help you either create new data or use current random data.
 
 Whether using demo data or your own bank data the app has the same set of features. These are shown below, the check boxes without ticks are under development.
+- [x] Clean up the bank data to make it more readable by humans (remove nonsense strings, change the case of ALL CAPS words, remove random dates in the description and numbers and unnecessary punctuation)
 - [x] Plot and tabulate data
 - [ ] Pivots in tables.
 - [x] Edit categories within the table.
@@ -17,8 +18,8 @@ Whether using demo data or your own bank data the app has the same set of featur
 - [x] Categorise data
 - [x] Find time averaged incomings and outgoings.
 - [ ] Predict future balance, could use the averages to begin with...
-- [ ] Paypal integration.
-- [ ] Have a settings page to change things outside of the source code such as the look of the app.
+- [x] Paypal integration.
+- [x] Have a settings page to change things outside of the source code such as the look of the app.
 - [ ] Be able to write scripts within the app to perform functions on the data without changing the source code.
 - [ ] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...
 - [ ] Be able to load new data into the app.

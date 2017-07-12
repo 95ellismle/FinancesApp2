@@ -33,12 +33,37 @@ def comment_remove(string):
     string = '\n'.join(x)
     return string
 
+# Detects the funny nonsense character strings that sometimes get put at the end of bank data
+def nonsense_string(string):
+         vowels = ['a','e','i','o','u','y']
+         length = len(string)
+         num_vowels = sum(x in vowels for x in string)
+         ratio = num_vowels/length
+         if ratio < 0.2 and length > 4:
+             return False
+         else:
+             return True 
+
 # Removes Certain Strings from the Description of the Transaction to make it more readable
 def unclutter(string):
-    for i in ['1','2','3','4','5','6','7','8','9','0','(',')','CD', '\\', '/']:
+    string = string.upper()
+    for i in ['1','2','3','4','5','6','7','8','9','0','(',')','CD', ':', '\\', '/', '%']:
         string = string.replace(i,'')
-    return string
+    string = capital(string)
+    for i in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',',']:
+        string = string.replace(i,'')
+    st = ''
+    for i in string.split(' '):
+        if i:
+            if nonsense_string(i):
+                st += ' ' + i
+    if st == '':
+        return string
+    return st
 
 # Capatilises the first letter of each string
 def capital(i):
-    return osl.capwords(i) 
+    try:
+        return osl.capwords(i) 
+    except AttributeError:
+        return None
