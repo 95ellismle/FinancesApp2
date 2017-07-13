@@ -112,7 +112,7 @@ class ButtonPanel(QFrame):
         account_label.setStyleSheet(St.StyleSheets['QLabel'])
         
         accounts_frame = QFrame(self);
-        self.account_buttons = [QPushButton(i, self) for i in act_nums]
+        self.account_buttons = [QPushButton(i.replace('Account',''), self) for i in act_nums]
         [i.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) for i in self.account_buttons]
         [i.setCheckable(True) for i in self.account_buttons]
         [i.setStyleSheet(St.StyleSheets['Plot Buttons Account']) for i in self.account_buttons]
@@ -146,13 +146,13 @@ class ButtonPanel(QFrame):
         fncs.AllInOneLayout(self, [account_label, accounts_frame, ydata_label, plot_params_frame, spacer, groupby_frame, spacer], VH='V', Align=Qt.AlignTop, Stretches=[1,1,1,1,0.2,1,10])
     
     def onAccountClick(self):
-        x = [i.isChecked() for i in self.account_buttons]
-        self.plotting_accounts = list(compress(act_nums,x))
+        fil = [i.isChecked() for i in self.account_buttons]
+        self.plotting_accounts = list(compress(act_nums,fil))
         self.graph.plotting(self.plotting_accounts, self.yparams)
         
     def onPlotParameterClick(self):
-        x = [i.isChecked() for i in self.plot_params_buttons]
-        self.yparams = list(compress(Plottable_cols, x))
+        fil = [i.isChecked() for i in self.plot_params_buttons]
+        self.yparams = list(compress(Plottable_cols, fil))
         self.graph.plotting(self.plotting_accounts, self.yparams)
         
     def onComboBox(self, text):
@@ -172,7 +172,7 @@ class PlotCanvas(FigureCanvas):
         self.plotting(Accounts, YParams)
         
     def plotting(self, Accounts, YParams):
-        self.ax.cla()
+        self.axis_prep()
         if Accounts and YParams:
             for acc in Accounts:
                 data = dict_DATA[acc].ix[:, list(Plottable_cols)+['Date']]
@@ -186,6 +186,14 @@ class PlotCanvas(FigureCanvas):
                     #self.get_mid_coords(ydat.index, ydat)
                     self.ax.plot(ydat, color=col, ls=ls, lw=lw, marker=marker)
         self.draw()
+        
+    def axis_prep(self):
+        self.ax.cla()
+        self.fig.subplots_adjust(left=0.08,right=0.97,
+                            bottom=0.08,top=0.97,
+                            hspace=0.2,wspace=0.2)
+        self.ax.set_xlabel('Date')
+        self.ax.set_ylabel('Money / £')
         
     def whichPlot(self, YParams, Accounts, acc):
         col = dr.dict_value_get(default_plots[YParams],'color')

@@ -18,7 +18,7 @@ Whether using demo data or your own bank data the app has the same set of featur
 - [x] Categorise data
 - [x] Find time averaged incomings and outgoings.
 - [ ] Predict future balance, could use the averages to begin with...
-- [x] Paypal integration.
+- [x] PayPal integration (Uses the withdraw amount and the rough date to determine which paypal transactions match which bank transaction).
 - [x] Have a settings page to change things outside of the source code such as the look of the app.
 - [ ] Be able to write scripts within the app to perform functions on the data without changing the source code.
 - [ ] Be able to download statement data without leaving the app... maybe through a web browser within the app... Not a priority...

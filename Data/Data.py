@@ -86,7 +86,7 @@ def multi_list_check(list1, list2):
         return list1
 
 # Fills a smaller list with a value specified by the filler
-def list_fill(small_list, large_list, Type=0, filler='1'):
+def list_fill(small_list, large_list, Type=1, filler='Account '):
          lenS, lenL = len(small_list), len(large_list)
          for i in range(lenS, lenL):
              if Type == 0:
@@ -95,6 +95,8 @@ def list_fill(small_list, large_list, Type=0, filler='1'):
                  small_list.append(str(i+1))
              if Type == 2:
                  small_list.append(small_list[int(i%lenS)])
+             if Type == 3:
+                 small_list.append(filler+str(i+1))
          return small_list         
         
 # Checks to see whether a search parameter (value) is in the dictionary's values. Works for strings, numbers and lists.
@@ -237,7 +239,8 @@ def Initial_Prep(dataframe):
     ### Sorting data from different bank accounts
     act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
     global new_act_names 
-    list_fill(new_act_names, act_nums, Type=1)
+    new_act_names = new_act_names[:len(act_nums)]
+    list_fill(new_act_names, act_nums, Type=3)
     dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
     for i in dict_DATA: # Deleting the account numbers in the dataframes
         dict_DATA[i] = dict_DATA[i].drop([col for col in dataframe.columns if 'Acc' in col], axis=1)
@@ -389,9 +392,11 @@ def Data_Read(filepath, paypal=False):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
+            print("Cleaning up the data...")
             for col in ['Balance','In','Out','Date']:
                 dict_DATA[i]['Description'] = dict_DATA[i]['Description'] + ';' + dict_DATA[i][col].apply(tc.string)
             dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(paypal_cross_ref, args=(7,))        
+            print("Categorising...")
             dict_DATA[i]['Category'] = dict_DATA[i]['Type']
             for col in ['Description','Balance','In','Out','Date']:
                 dict_DATA[i]['Category'] = dict_DATA[i]['Category'] + ';' + dict_DATA[i][col].apply(tc.string)
