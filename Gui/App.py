@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QSizePolicy, QPushButton, QFrame, QWidget, QStackedW
 from PyQt5.QtGui import QColor
 
 # Importing Modules from the App
-from Gui import Table, Plot, Settings, Funcs, About
+from Gui import Table, Plot, Funcs, Budget
 from Settings import StyleSheets as St
 # The Main Window... This Widget will be the main window.
 # Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
@@ -37,8 +37,7 @@ class App(QWidget):
     def initUI(self):
         self.TableStackItem = Table.TablePage()
         self.PlotStackItem = Plot.App_Bit()
-        self.SettingsStackItem = Settings.SettingsPage()
-        self.AboutStackItem = About.AboutPage()
+        self.BudgetStackItem = Budget.SettingsPage()
         
         sidebar_frame = self.sideBar()
         
@@ -46,8 +45,7 @@ class App(QWidget):
         
         self.FullStack.addWidget(self.TableStackItem)
         self.FullStack.addWidget(self.PlotStackItem)
-        self.FullStack.addWidget(self.SettingsStackItem)
-        self.FullStack.addWidget(self.AboutStackItem)
+        self.FullStack.addWidget(self.BudgetStackItem)
         
         self.onTabButton()
         
@@ -60,10 +58,10 @@ class App(QWidget):
         sidebar_frame.setMinimumWidth(110)
         #sidebar_frame.setStyleSheet(St.StyleSheets['Sidebar'])
         
-        button_titles = ['Data\nTables','Plotting','About','Settings']
+        button_titles = ['Data\nTables','Plotting','Budget']
         button_titles = fill_a_list(button_titles, '', St.number_of_buttons_on_sidebar-len(button_titles))
         self.buttons = []   
-        but_funcs = [self.onTabButton, self.onPlotButton, self.onAboutButton, self.onSettingsButton ]
+        but_funcs = [self.onTabButton, self.onPlotButton, self.onBudgetButton ]
         but_funcs = fill_a_list(but_funcs, self.emptyFunc, St.number_of_buttons_on_sidebar-len(but_funcs))
         for i in range(St.number_of_buttons_on_sidebar):
             button = QPushButton(button_titles[i])
@@ -87,13 +85,10 @@ class App(QWidget):
         self.PlotStackItem.setFocus()
         self.FullStack.setCurrentIndex(1)
     
-    def onSettingsButton(self):
-        self.SettingsStackItem.setFocus()
+    def onBudgetButton(self):
+        self.BudgetStackItem.setFocus()
         self.FullStack.setCurrentIndex(2)
-        
-    def onAboutButton(self):
-        self.AboutStackItem.setFocus()
-        self.FullStack.setCurrentIndex(3)
+
     
     def emptyFunc(self):
         return 0

@@ -4,7 +4,6 @@ from PyQt5.QtCore import Qt
 
 from Gui import Funcs as fncs
 
-
 class SettingsPage(QWidget):
     
     def __init__(self):
@@ -15,8 +14,5 @@ class SettingsPage(QWidget):
         
     def initUI(self):
         
-        l1 = QLabel("Peek-A-Boo!")
-        font = QFont("Comic Sans", 25)
-        l1.setFont(font)
-        fncs.AllInOneLayout(self,[l1],Align=Qt.AlignCenter)
         self.show()
+

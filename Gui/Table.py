@@ -9,7 +9,6 @@ from PyQt5.QtGui import QFont, QColor
 from numpy import shape, column_stack, arange
 from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
-from pandas import DataFrame
 
 # Matplotlib imports
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -19,6 +18,7 @@ from matplotlib.figure import Figure
 from __main__ import dict_DATA as dict_bank_data
 from Data import Data as dr
 from Data import Type_Convert as tc
+from Data import Stats as stats
 import Gui.Funcs as fncs
 from Settings import StyleSheets as St
 
@@ -124,7 +124,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         b_col = QColor(St.background_colour)
         p.setColor(self.backgroundRole(), b_col)
         self.setPalette(p)   
-        self.search_data = self.statFinder(dict_bank_data[act_nums[0]])
+        self.search_data = stats.statFinder(dict_bank_data[act_nums[0]])
         ###
         self.initUI() # Call the initUI function to initialise things
         
@@ -196,10 +196,10 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         Account_Number = self.tabbar.tabText(self.tabbar.currentIndex()) #Find the account number
         if search_item == '' or search_item == 'all' or search_item == "search...":
             self.search_data = dict_bank_data[Account_Number] # reset the data if the above are typed in ^
-            self.search_data = self.DateSplice(self.search_data, self.SearchBar.date1, self.SearchBar.date2)
+            self.search_data = dr.DateSplice(self.search_data, self.SearchBar.date1, self.SearchBar.date2)
         else:
             df = dict_bank_data[Account_Number] # find the data that corresponds to the tab currently selected
-            df = self.DateSplice(df, self.SearchBar.date1, self.SearchBar.date2)
+            df = dr.DateSplice(df, self.SearchBar.date1, self.SearchBar.date2)
             check_boxes = self.SearchBar.CheckBoxes.bxs 
             cols = [check_boxes[i].text() for i in check_boxes if check_boxes[i].isChecked()] # find which columns to search according to the check boxes
             mask = column_stack([df[col].apply(tc.lower).str.contains(search_item, na=False) for col in cols]) # The actual search. This constructs a Ndarray of booleans (a mask). True means the search condition has been met.
@@ -207,42 +207,14 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
         
         self.plotCategories(self.search_data) # Plots a little bar chart of the categorised data
         self.models[Account_Number].updateData(self.search_data)
-        self.SearchBar.model.updateData(self.statFinder(self.search_data))
+        self.SearchBar.model.updateData(stats.statFinder(self.search_data))
         
-    # Finds averages and sums
-    def statFinder(self, data):
-        total_spend = data['Out'].apply(tc.str2float).sum()
-        item_count  = len(data)
-        total_in = data['In'].apply(tc.str2float).sum()
-        if item_count > 0:
-            first_date = min(data['Date'])
-            second_date = max(data['Date'])
-            time_delta = second_date-first_date
-            item_avg   = format(total_spend/item_count, ",.2f")
-            daily_avg = format(total_spend/time_delta.days, ",.2f")
-            time_delta = second_date-first_date
-            item_avg_in   = format(total_in/item_count, ",.2f")
-            daily_avg_in = format(total_in/time_delta.days,",.2f")
-        else:
-            item_avg = '-'
-            daily_avg = '-'
-            item_avg_in = '-'
-            daily_avg_in = '-'
-        total_spend = format(total_spend, ",.0f")
-        total_in = format(total_in, ",.0f")
-        
-        return DataFrame({'Out':[total_spend, format(item_count,',d'), item_avg, daily_avg],'In':[total_in, format(item_count,',d'), item_avg_in, daily_avg_in]})
-    
+
     # Plot the categories in a bar chart
     def plotCategories(self, data):
         xdata,ydata = self.SearchBar.dataPrep(data)
         self.SearchBar.CatPlot.plot(xdata, ydata)
         
-    #Will splice data between 2 given dates.
-    def DateSplice(self, data, date1, date2):
-        data = data.loc[data['Date'] < date2]
-        data = data.loc[data['Date'] > date1]
-        return data
     
     # Binds events to key presses
     def keyPressEvent(self, e):
@@ -346,7 +318,7 @@ class Search(QFrame):
         self.calender.setHidden(True)
         if self.datenum == 1:
             self.date1 = self.calender.selectedDate().toPyDate()
-            self.DateLabel.setText("%s -> %s"%(dr.date2str(self.date1),dr.date2str(self.date2)))
+            self.DateLabel.setText("%s -> %s"%(tc.date2str(self.date1),tc.date2str(self.date2)))
         elif self.datenum == 2:
             self.date2 = self.calender.selectedDate().toPyDate()
         self.parent().SearchAndDisplay()

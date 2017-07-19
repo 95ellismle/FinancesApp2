@@ -19,7 +19,12 @@ col_head_filepath = '/home/ellismle/Documents/Other/Finances_app2/Settings/Data_
 
 ###
 
-  
+
+#Will splice data between 2 given dates.
+def DateSplice(data, date1, date2):
+    data = data.loc[data['Date'] < date2]
+    data = data.loc[data['Date'] > date1]
+    return data
 
 # Permanently removes the Sort-Code in the bank account data because it is not needed.
 def data_clean(filepaths):
@@ -392,11 +397,9 @@ def Data_Read(filepath, paypal=False):
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
-            print("Cleaning up the data...")
             for col in ['Balance','In','Out','Date']:
                 dict_DATA[i]['Description'] = dict_DATA[i]['Description'] + ';' + dict_DATA[i][col].apply(tc.string)
             dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(paypal_cross_ref, args=(7,))        
-            print("Categorising...")
             dict_DATA[i]['Category'] = dict_DATA[i]['Type']
             for col in ['Description','Balance','In','Out','Date']:
                 dict_DATA[i]['Category'] = dict_DATA[i]['Category'] + ';' + dict_DATA[i][col].apply(tc.string)
