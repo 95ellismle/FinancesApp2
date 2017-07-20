@@ -135,7 +135,7 @@ class ButtonPanel(QFrame):
         groupby_label = QLabel("Resample:")
         groupby_label.setFont(title_font)
         groupby_combo_box = QComboBox(self)
-        [groupby_combo_box.addItem(i) for i in ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly']]
+        [groupby_combo_box.addItem(i) for i in ['None', 'Daily', 'Weekly', 'Monthly', 'Quarter', 'Yearly']]
         groupby_combo_box.setStyleSheet(St.StyleSheets['Combo Box'])
         groupby_combo_box.activated[str].connect(self.onComboBox)
         
@@ -219,11 +219,13 @@ class PlotCanvas(FigureCanvas):
         if self.resample_rate == 'Weekly':
             self.resample_rate = 'W'
         elif self.resample_rate == 'Monthly':
-            self.resample_rate = 'M'
+            self.resample_rate = 'BMS'
         elif self.resample_rate == 'Daily':
             self.resample_rate = 'D'
+        elif self.resample_rate == "Quarter":
+            self.resample_rate = "QS"
         elif self.resample_rate == 'Yearly':
-            self.resample_rate = dt.timedelta(365.25)
+            self.resample_rate = 'AS'
         
                     
     

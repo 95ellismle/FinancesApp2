@@ -7,7 +7,6 @@ from PyQt5.QtGui import QFont, QColor
 
 # Other Imports
 from numpy import shape, column_stack, arange
-from numpy.ma import masked_where, compressed
 from datetime import datetime as dt
 
 # Matplotlib imports
@@ -212,7 +211,7 @@ class TablePage(QWidget): # Create a class inheriting from the QMainWindow
 
     # Plot the categories in a bar chart
     def plotCategories(self, data):
-        xdata,ydata = self.SearchBar.dataPrep(data)
+        xdata,ydata = stats.catFinder(data)
         self.SearchBar.CatPlot.plot(xdata, ydata)
         
     
@@ -294,7 +293,7 @@ class Search(QFrame):
         self.calender.clicked.connect(self.closeCalender)
 
         self.CatPlot = PlotCanvas([],[])
-        xdata,ydata = self.dataPrep(dict_bank_data[act_nums[0]])
+        xdata,ydata = stats.catFinder(dict_bank_data[act_nums[0]])
         self.CatPlot.plot(xdata, ydata)
         
         fncs.AllInOneLayout(self,[self.Title, self.lineedit, self.CheckBoxes, self.ButtonFrame, self.DateLabel, self.calender, self.view, self.CatPlot], VH='v', Stretches=[1,1,1,1,1,6,4,12], Align=Qt.AlignTop)
@@ -306,21 +305,32 @@ class Search(QFrame):
         self.datenum = 1
         
     def onButtonClick2(self):
-        self.calender.setHidden(not self.calender.isHidden())
+        self.calender.setHidden(not self.calender.isHidden())       
         self.datenum = 2
     
     def DateReset(self):
         self.date1 = dt.strptime("01/01/1970","%d/%m/%Y")
+        self.calbut1change(self.date1)
         self.date2 = dt.now()
+        self.calbut2change(self.date2)
         self.parent().SearchAndDisplay()
+    
+    def calbut1change(self, date): 
+        strdate1 = tc.date2str(date)
+        self.ButtonFrame.Date1Button.setText(strdate1)
+        
+    def calbut2change(self, date):
+        strdate2 = tc.date2str(date)
+        self.ButtonFrame.Date2Button.setText(strdate2)
     
     def closeCalender(self):
         self.calender.setHidden(True)
         if self.datenum == 1:
             self.date1 = self.calender.selectedDate().toPyDate()
-            self.DateLabel.setText("%s -> %s"%(tc.date2str(self.date1),tc.date2str(self.date2)))
+            self.calbut1change(self.date1)
         elif self.datenum == 2:
             self.date2 = self.calender.selectedDate().toPyDate()
+            self.calbut2change(self.date2)
         self.parent().SearchAndDisplay()
             
     # This function creates the table using a TableView
@@ -336,20 +346,6 @@ class Search(QFrame):
         view.show()
         return model
         
-    # Preps data for the bar plot of the categories
-    def dataPrep(self, data):
-        try:
-            data = data.loc[:,['Category','Out']]
-            data['Out'] = data['Out'].apply(tc.dataPrep)
-            data['Out'] = data['Out'].fillna(0)
-            data = data.groupby('Category').sum()
-            xdata = list(data.index)
-            ydata = data.values[:,0]
-            xdata = compressed(masked_where(ydata == 0, xdata))
-            ydata = compressed(masked_where(ydata == 0, ydata))
-            return (xdata,ydata)
-        except KeyError:
-            pass
     
 
 # A Frame to hold some buttons to control the date setting in the table

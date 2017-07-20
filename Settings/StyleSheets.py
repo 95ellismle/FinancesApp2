@@ -1,3 +1,6 @@
+from PyQt5.QtGui import QFont
+
+
 from Gui import Funcs as f
 
 ### Table Related Styles
@@ -9,7 +12,7 @@ Item_Font = (font,14)
 Tab_Font = (font,15)
 Show_Table_Grid_Lines = False
 Search_Bar_Font = (font, 16)
-Search_Info_Font = (font,14)
+Search_Info_Font = (font, 14)
 Title_Font = (font, 17)
 
 ###
