@@ -67,3 +67,19 @@ def capital(i):
         return osl.capwords(i) 
     except AttributeError:
         return None
+    
+    
+import codecs
+# Removes non utf-8 characters from a file
+def nonUTFremove(file):
+    try:
+        open(file).read()
+        return file
+    except UnicodeDecodeError:
+        inFile = codecs.open(file, 'r', 'utf-8', 'ignore')
+        inText = inFile.read()
+        inFile.close()
+        f = open(file, 'w')
+        f.write(inText)    
+        f.close() 
+        return file

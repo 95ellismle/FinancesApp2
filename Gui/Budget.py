@@ -13,8 +13,6 @@ class SettingsPage(QWidget):
         
         
     def initUI(self):
-        title =  QLabel("This Year's Breakdown")
-        bob = QLabel("BOB")
-        fncs.AllInOneLayout(self, title, Align=Qt.AlignTop, VH='v')
+        
         self.show()
 

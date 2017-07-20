@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import string as osl
 import datetime as dt
+import numpy as np
 
 from Data import Type_Convert as tc
 from Data import Strings as st
@@ -191,12 +192,13 @@ def exceptionparser(filepath):
 # Reads a group of data files and groups them into 1 dataframe.
 def data_read_and_concat(filepaths):
     if type(filepaths) == list:
-        data = pd.concat([pd.read_csv(file) for file in filepaths]) #Concatenating the account data frames together.
+        data = pd.concat([pd.read_csv(st.nonUTFremove(file)) for file in filepaths]) #Concatenating the account data frames together.
     if type(filepaths) == str:
         files = [i for i in os.listdir(filepaths) if '.csv' in i]
         data = {int(i[:i.find('.csv')]):pd.read_csv('./'+i) for i in files}
     return data
 
+# Finds the paypal files in a folder
 def find_paypal_files(folderpath):
     ### Finding the Bank Statement Files and Paypal files
     poss_datafiles = os.listdir(folderpath)
@@ -205,6 +207,7 @@ def find_paypal_files(folderpath):
     ###
     return datafilepaths
 
+# A function to read the paypal data.
 def paypal_data_read(folder):
     paypal_filepaths = find_paypal_files(folder)
     if len(paypal_filepaths):
@@ -221,10 +224,17 @@ def paypal_data_read(folder):
 
 paypal_data = paypal_data_read(bank_data_folder)
 
+# A function to splice a dataframe between 2 dates
 def dataframe_date_splice(data, date1, date2):
     data = data.loc[data['Date'] > date1]
     data = data.loc[data['Date'] < date2]
     return data
+
+# A function to drop columns that have a large percentage of nan values
+def drop_nan_cols(df, nan_percent=0.8):
+     threshold = len(df.index) * nan_percent
+     [df.drop(c, inplace=True, axis=1) for c in df.columns if sum(df[c].isnull()) >= threshold]
+     return df
 
 
 def find_files(folderpath):
@@ -360,6 +370,16 @@ def categoriser(item):
     else:
         return cat
 
+# If there is just 1 column with the in and out data
+def split_in_out_col(df, names):
+    x = multi_list_check(['mount'], df.columns)
+    if x:
+        incol = dict_key_get(names, 'in')
+        outcol = dict_key_get(names, 'out')
+        df[incol] = df[x[1]].loc[df[x[1]] > 0]
+        df[outcol] = -df[x[1]].loc[df[x[1]] <= 0]
+        return df        
+
 # Reads the data
 def Data_Read(filepath, paypal=False):
     if os.path.isdir(filepath):
@@ -371,14 +391,15 @@ def Data_Read(filepath, paypal=False):
         DATA = data_read_and_concat(datafilepaths)       # Reads the statement files and collates them into 1 dataframe
     else:
         DATA = data_read_and_concat('./')
-        
+    
     if len(DATA):
-        names = dict_parser(col_head_filepath) #Grabbing the data headers
+        names = dict_parser(col_head_filepath, 'c') #Grabbing the data headers
     
         ### Changing the names of the statement columns
         cols = DATA.columns
         new_cols = dict_value_search(names, list(cols))
         DATA.columns = new_cols
+        split_in_out_col(DATA, names)
         ###
     else:
         print("\n\n\nSorry there are no '.csv' files could be found in the directory '"+filepath+"'\nAre you sure this is where you want me to look?\n\n\n\n")
@@ -415,3 +436,4 @@ def Data_Read(filepath, paypal=False):
                 Plottable_cols.append(col)    
     
     return dict_DATA, Plottable_cols
+    

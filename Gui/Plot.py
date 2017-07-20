@@ -15,6 +15,7 @@ import datetime as dt
 # Imports from other modules
 from Data import Data as dr
 from Data import Type_Convert as tc
+from Data import Stats as stats
 import Gui.Funcs as fncs
 from Settings import StyleSheets as St
 from __main__ import Plottable_cols, dict_DATA
@@ -135,7 +136,7 @@ class ButtonPanel(QFrame):
         groupby_label = QLabel("Resample:")
         groupby_label.setFont(title_font)
         groupby_combo_box = QComboBox(self)
-        [groupby_combo_box.addItem(i) for i in ['None', 'Daily', 'Weekly', 'Monthly', 'Quarter', 'Yearly']]
+        [groupby_combo_box.addItem(i) for i in ['None', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly']]
         groupby_combo_box.setStyleSheet(St.StyleSheets['Combo Box'])
         groupby_combo_box.activated[str].connect(self.onComboBox)
         
@@ -181,7 +182,7 @@ class PlotCanvas(FigureCanvas):
                     data[col] = data[col].apply(tc.dataPrep)
                 for yparam in YParams:
                     col, ls, lw, marker =self.whichPlot(yparam, Accounts, acc)
-                    ydat = self.resample(data, yparam)
+                    ydat = stats.resample(self.resample_rate_translate(self.resample_rate), data, yparam)
                     self.ax.grid('on')
                     #self.get_mid_coords(ydat.index, ydat)
                     self.ax.plot(ydat, color=col, ls=ls, lw=lw, marker=marker)
@@ -215,32 +216,18 @@ class PlotCanvas(FigureCanvas):
             axes.annotate(annotation, xy=coords[0], xytext = coords[1], 
                           arrowprops=dict(arrowstyle='->', color='red'), fontsize=16)
     
-    def resample_rate_translate(self):
-        if self.resample_rate == 'Weekly':
-            self.resample_rate = 'W'
-        elif self.resample_rate == 'Monthly':
-            self.resample_rate = 'BMS'
-        elif self.resample_rate == 'Daily':
-            self.resample_rate = 'D'
-        elif self.resample_rate == "Quarter":
-            self.resample_rate = "QS"
-        elif self.resample_rate == 'Yearly':
-            self.resample_rate = 'AS'
+    def resample_rate_translate(self, resample_rate):
+        if resample_rate == 'Weekly':
+            return 'W'
+        elif resample_rate == 'Monthly':
+            return 'BMS'
+        elif resample_rate == 'Daily':
+            return 'D'
+        elif resample_rate == "Quarterly":
+            return "QS"
+        elif resample_rate == 'Yearly':
+            return 'AS'
         
-                    
-    
-    def resample(self, data, yparam):
-        self.resample_rate_translate()
-        if self.resample_rate == 'None':
-            return data[yparam].astype(float)
-        if yparam == 'Balance':
-            data = data.groupby(data.index).max()[yparam]
-            data = data.resample(self.resample_rate).max()
-        elif yparam == 'In' or yparam == 'Out':
-            data = data.groupby(data.index).sum()[yparam]
-            data = data.resample(self.resample_rate).sum()
-        data = data.dropna()
-        return data
     
     def make_figure(self):
         fig = Figure(facecolor='white')

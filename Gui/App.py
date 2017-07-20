@@ -5,8 +5,6 @@ from PyQt5.QtGui import QColor
 # Importing Modules from the App
 from Gui import Table, Plot, Funcs, Budget
 from Settings import StyleSheets as St
-# The Main Window... This Widget will be the main window.
-# Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
 
 def smallerNumber(number1, number2):
     if number1 < number2:
@@ -20,7 +18,8 @@ def fill_a_list(List, filler, length):
 
 
 class App(QWidget):
-    
+    # The Main Window... This Widget will be the main window.
+    # Other widgets such as the TablePage and PlotPage will be called from here in a StackedWidget
     def __init__(self):
         super(App, self).__init__()
         self.setWindowTitle('Finances App 2')  # Set the title of the app

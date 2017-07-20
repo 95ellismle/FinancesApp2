@@ -37,6 +37,17 @@ from Data.Data import demo_data
 cats = dr.dict_parser(categories_filename)
 count = 0
 
+def create_data(data_create_question):
+    if 'y' in data_create_question.lower():
+        num_accs = input("How many account's worth should I make?\t")
+        make_data(num_accs)
+        return 0
+    elif 'n' in data_create_question.lower():
+        print("OK, I'll just try and load the data that is already there.\n")
+        return 0
+    else:
+        create_data(input("Sorry please type yes or no...\t"))
+
 def make_data(num_accs):
     if "c" in num_accs.lower():
         return 0
