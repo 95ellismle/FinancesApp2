@@ -372,8 +372,9 @@ def categoriser(item):
 
 # If there is just 1 column with the in and out data
 def split_in_out_col(df, names):
+    amount_cols = ['mount']
     x = multi_list_check(['mount'], df.columns)
-    if x:
+    if x != amount_cols:
         incol = dict_key_get(names, 'in')
         outcol = dict_key_get(names, 'out')
         df[incol] = df[x[1]].loc[df[x[1]] > 0]
