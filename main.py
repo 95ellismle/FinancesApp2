@@ -15,7 +15,7 @@ dict_DATA, Plottable_cols = dr.Data_Read(bank_statement_folder_path)
 
 #print(data)
 
-        
+ 
 from Gui import App
 import sys
 from PyQt5.QtWidgets import QApplication

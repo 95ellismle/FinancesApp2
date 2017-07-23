@@ -73,11 +73,18 @@ def dict_key_get(dictionary, search):
             None
             
 # Checks if a substring is in a list of strings and if it is returns the list item
-def list_check(search_item, LIST):
-    for list_item in LIST:
-        if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
-            return (True,list_item)
-    return False
+def list_check(search_item, LIST, boolean=True):
+    if boolean:
+        for list_item in LIST:
+            if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
+                return (True,list_item)
+        return False
+    else:
+        list_return = []
+        for list_item in LIST:
+            if list_item.lower() in search_item.lower() or search_item.lower() in list_item.lower():
+                list_return.append(list_item)
+        return list_return
 
 # Returns any items in list1 that are substrings of items in list2
 def multi_list_check(list1, list2):
@@ -231,10 +238,15 @@ def dataframe_date_splice(data, date1, date2):
     return data
 
 # A function to drop columns that have a large percentage of nan values
-def drop_nan_cols(df, nan_percent=0.8):
-     threshold = len(df.index) * nan_percent
-     [df.drop(c, inplace=True, axis=1) for c in df.columns if sum(df[c].isnull()) >= threshold]
-     return df
+def drop_nan_cols(df, nan_percent=0.8, ignore_cols=['In']):
+    col_indexes = list(range(len(df.columns)))
+    threshold = len(df.index) * nan_percent
+    for c in col_indexes:
+        if np.nansum(df.iloc[:,c].isnull()) > threshold:
+            if df.columns[c] not in ignore_cols:
+                col_indexes.remove(c)
+    df = df.iloc[:,col_indexes]
+    return df
 
 
 def find_files(folderpath):
@@ -245,6 +257,14 @@ def find_files(folderpath):
     ###
     return datafilepaths
 
+# If there aren't any account numbers in the dataframe then it asks for a name to identify the accounts with.
+def account_sorter(df):
+    if 'Acc Num' in df.columns:
+        return df, df.loc[:,'Acc Num'].unique()
+    else:
+        df['Acc Num'] = 0
+        return df, [0]
+
 # Converts 1 large dataframe containing data from multiple accounts to a dictionary of dataframes with each key only containing 1 account's data.
 def Initial_Prep(dataframe):
     dataframe = dataframe.drop_duplicates()
@@ -252,11 +272,11 @@ def Initial_Prep(dataframe):
     dataframe.loc[:,'Description'] = dataframe.loc[:,'Description'].apply(st.unclutter)
     dataframe = dataframe.sort_values('Date', 0, ascending=False)
     ### Sorting data from different bank accounts
-    act_nums = dataframe.loc[:,'Acc Num'].unique() # Finding the account numbers
+    dataframe, act_nums = account_sorter(dataframe) # Finding the account numbers
     global new_act_names 
     new_act_names = new_act_names[:len(act_nums)]
     list_fill(new_act_names, act_nums, Type=3)
-    dict_DATA = {new_act_names[i]:dataframe.loc[dataframe['Acc Num'] == act_nums[i]] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
+    dict_DATA = {new_act_names[i] : dataframe.loc[ dataframe['Acc Num'] == act_nums[i] ] for i in range(len(act_nums))} # Storing each account as a separate dictionary entry
     for i in dict_DATA: # Deleting the account numbers in the dataframes
         dict_DATA[i] = dict_DATA[i].drop([col for col in dataframe.columns if 'Acc' in col], axis=1)
     return dict_DATA, new_act_names
@@ -321,7 +341,7 @@ def categoriser(item):
         return exceptions[1][ind]
     Type, Desc, Bal, In, Out, Date = item.split(';')
         
-    if Type == 'cpt':
+    if Type == 'cpt' or Type == 'atm':
         return 'Cash'
     elif Type == 'bgc':
         return 'Salary'
@@ -333,8 +353,6 @@ def categoriser(item):
         return 'Bank Deposit'
     if 'interest' in Desc:
         return 'Interest'
-    if Desc == 'tan':
-        return 'Salary'
 
     cat = dict_value_search(cats, Desc)
 
@@ -373,13 +391,14 @@ def categoriser(item):
 # If there is just 1 column with the in and out data
 def split_in_out_col(df, names):
     amount_cols = ['mount']
-    x = multi_list_check(['mount'], df.columns)
-    if x != amount_cols:
+    x = multi_list_check(amount_cols, list(df.columns) )
+    if x != amount_cols and x:
         incol = dict_key_get(names, 'in')
         outcol = dict_key_get(names, 'out')
-        df[incol] = df[x[1]].loc[df[x[1]] > 0]
-        df[outcol] = -df[x[1]].loc[df[x[1]] <= 0]
-        return df        
+        df[incol] = df[x[0]].loc[df[x[0]] > 0]
+        df[outcol] = -df[x[0]].loc[df[x[0]] <= 0]
+        df.drop(x[0], axis=1, inplace=True)
+    return df   
 
 # Reads the data
 def Data_Read(filepath, paypal=False):
@@ -400,7 +419,10 @@ def Data_Read(filepath, paypal=False):
         cols = DATA.columns
         new_cols = dict_value_search(names, list(cols))
         DATA.columns = new_cols
-        split_in_out_col(DATA, names)
+        DATA = drop_nan_cols(DATA, 0.8)
+        
+        DATA = split_in_out_col(DATA, names)
+        DATA.index = range(len(DATA))
         ###
     else:
         print("\n\n\nSorry there are no '.csv' files could be found in the directory '"+filepath+"'\nAre you sure this is where you want me to look?\n\n\n\n")
@@ -408,20 +430,20 @@ def Data_Read(filepath, paypal=False):
         
     ### Converting the type from string to something more useful
     for i in DATA.columns:
-        DATA[i] = DATA[i].apply(tc.str2num)
+        DATA[i] = DATA[i].apply(tc.str2num)   
         if DATA[i].dtype == object:
             DATA[i] = tc.str2date(DATA[i])   
     ###
-    
     if len(datafilepaths):
         dict_DATA, act_nums = Initial_Prep(DATA)
         ###
         cols_ordered = ['Description','Category','In','Out','Date','Balance','Type']
         Plottable_cols = []
         for i in dict_DATA:
-            for col in ['Balance','In','Out','Date']:
-                dict_DATA[i]['Description'] = dict_DATA[i]['Description'] + ';' + dict_DATA[i][col].apply(tc.string)
-            dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(paypal_cross_ref, args=(7,))        
+            if paypal:
+                for col in ['Balance','In','Out','Date']:
+                    dict_DATA[i]['Description'] = dict_DATA[i]['Description'] + ';' + dict_DATA[i][col].apply(tc.string)
+                dict_DATA[i]['Description'] = dict_DATA[i]['Description'].apply(paypal_cross_ref, args=(7,))        
             dict_DATA[i]['Category'] = dict_DATA[i]['Type']
             for col in ['Description','Balance','In','Out','Date']:
                 dict_DATA[i]['Category'] = dict_DATA[i]['Category'] + ';' + dict_DATA[i][col].apply(tc.string)
@@ -437,4 +459,3 @@ def Data_Read(filepath, paypal=False):
                 Plottable_cols.append(col)    
     
     return dict_DATA, Plottable_cols
-    

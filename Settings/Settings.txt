@@ -17,7 +17,7 @@ Demo: off;	# Turns on demo mode
 
 Account Names: Current, Student; 	# Names for the accounts
 
-Statement Folder Location: Stats/; 	# Should have a slash after   /home/ellismle/Documents/Other/
+Statement Folder Location: /home/ellismle/Documents/Other/Stats/; #
 
 Demo Data Folder: Data/Demo_Data/;	# Should have a slash after
 
